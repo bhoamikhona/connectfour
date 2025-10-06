@@ -23,6 +23,14 @@ public class MoveStack {
      * 
      * @param m
      */
+
+    /**
+     * Pushes a move onto the top of the stack
+     * Does nothing is {@param m} is null. Throws if the stack is full.
+     *
+     * @param m the move to push (ignored if null)
+     * @throws IllegalStateException if the stack is already full
+     */
     public void push(Move m) {
         if (m == null)
             return;
@@ -35,6 +43,12 @@ public class MoveStack {
     }
 
     /** TODO: Uncomment this method and implement the popping of the stack */
+    /**
+     * Pops and returns the top move.
+     * If the stack is empty, returns null
+     *
+     * @return the removed top move, or null if empty
+     */
     public Move pop() {
 
         if (isEmpty())
@@ -52,6 +66,13 @@ public class MoveStack {
      * 
      * @return
      */
+
+    /**
+     * Returns true if the stack has no elements.
+     *
+     *
+     * @return true when top == -1, false otherwise
+     */
     public boolean isEmpty() {
         return top == -1;
     }
@@ -59,6 +80,10 @@ public class MoveStack {
     /**
      *
      * TODO: Implement the clear method
+     */
+
+    /**
+     * Removes all moves and resets the stack.
      */
     public void clear() {
 
@@ -75,6 +100,11 @@ public class MoveStack {
      * TODO: You need to implement the size method
      * 
      * @return
+     */
+
+    /**
+     * Returns how many moves are in the stack.
+     * @return current number of elements (equal to top + 1)
      */
     public int size() {
         return top + 1;
