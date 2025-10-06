@@ -14,18 +14,36 @@ public class TurnQueue {
      * The return values will need to be fixed.
      * @return
      */
+
+    /**
+     * Returns how many players are in the queue
+     * @return current number of elements
+     */
     public int size() {
         return size;
     }
 
+    /**
+     * Returns true if the queue has no elements
+     * @return true when size is 0, false otherwise
+     */
     public boolean isEmpty() {
         return size == 0;
     }
 
+    /**
+     * Returns true if the queue is full.
+     * @return true when size equals capacity, false otherwise
+     */
     public boolean isFull() {
         return size == data.length;
     }
 
+    /**
+     * Adds a player at the back (tail) of the queue
+     * @param p player to add
+     * @throws IllegalStateException if the queue is full
+     */
     public void enqueue(Player p) {
         if (p == null) return;
 
@@ -44,10 +62,19 @@ public class TurnQueue {
     /**
      * TODO: Uncomment and implement the peek and dequeue methods.
      */
+
+    /**
+     * Returns the front player without removing it.
+     * @return front player, or null if empty
+     */
      public Player peek() {
          return isEmpty() ? null : data[head];
      }
 
+    /**
+     * Removes and returns the front player.
+     * @return removed player, or null if empty
+     */
      public Player dequeue() {
          if (isEmpty()) return null;
 
@@ -65,6 +92,11 @@ public class TurnQueue {
      }
 
     /** TODO: Implement the rotate and clear methods */
+
+    /**
+     * Moves the front player to the back.
+     * No effect if there are less than 2 players.
+     */
     public void rotate() {
         if (size < 2) return;
 
@@ -75,6 +107,10 @@ public class TurnQueue {
         enqueue(first);
     }
 
+    /**
+     * Removes all players and resets the queue.
+     * Capacity does not change.
+     */
     public void clear() {
         for (int i = 0; i < data.length; i++) {
             data[i] = null;
