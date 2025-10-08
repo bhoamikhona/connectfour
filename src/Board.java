@@ -171,16 +171,15 @@ public class Board {
 
     // TODO: recursion to count in a direction - COMPLETED
     private int countDirection(int r, int c, int dr, int dc, char token) {
-        if (r < 0 || r >= rows)
-            throw new IllegalArgumentException("Invalid row");
-        if (c < 0 || c >= cols)
-            throw new IllegalArgumentException("Invalid column");
+        //  Stop if out of bounds
+        if (r < 0 || r >= rows || c < 0 || c >= cols)
+            return 0;
 
-        // check if the value in the current cell is equal to the token, if not return
+        //  Stop if cell doesn't match the token
         if (grid[r][c] != token)
             return 0;
 
-        // count the current cell + keep walking in the same direction
+        //  Otherwise, count this cell and keep going in the same direction
         return 1 + countDirection(r + dr, c + dc, dr, dc, token);
     }
 

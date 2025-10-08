@@ -121,13 +121,14 @@ public class Game {
         //if the column is full gives us message to change it to another column
         if (row == -1){
             System.out.println("That column is full. Try another one.");
+            return;
         }
 
         //it will save the current move so it can be undone later
         Move move = new Move(row, col, current.token());
         undoStack.push(move);
 
-        board.print(); // will print the updated board
+
 
         //in this step we will check if the current player won
         if (board.isWinningMove(row,col)){

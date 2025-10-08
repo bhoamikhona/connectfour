@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee11643b-972c-47c3-ad7c-f29f9ccfbcde" name="Changes" comment="">
+    <list default="true" id="ee11643b-972c-47c3-ad7c-f29f9ccfbcde" name="Changes" comment="Handle dropping and handle undoing are implemented">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Board.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Player.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Player.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,11 +93,24 @@
       <workItem from="1759900219015" duration="13519000" />
       <workItem from="1759947061749" duration="1641000" />
       <workItem from="1759955686340" duration="1698000" />
-      <workItem from="1759960246437" duration="3077000" />
+      <workItem from="1759960246437" duration="4494000" />
     </task>
+    <task id="LOCAL-00001" summary="Handle dropping and handle undoing are implemented">
+      <option name="closed" value="true" />
+      <created>1759963395279</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1759963395279</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Handle dropping and handle undoing are implemented" />
+    <option name="LAST_COMMIT_MESSAGE" value="Handle dropping and handle undoing are implemented" />
   </component>
 </project>
