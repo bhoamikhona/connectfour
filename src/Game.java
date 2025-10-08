@@ -118,5 +118,18 @@ public class Game {
      * TODO: Restart the game
     */
 
-    private void restart() {}
+    private void restart() {
+        board.clear(); //this will clear the board
+        undoStack.clear(); //This will clear the undo stack
+        turnQueue.clear(); // this will reset the turn queue
+
+        //now we should add the two players in order again
+        turnQueue.enqueue(new Player("Player 1",'X'));
+        turnQueue.enqueue(new Player("Player 2" , 'O'));
+
+        System.out.println("Game restarted!"); //we print a confirmation message
+        board.print(); //print the empty board again
+
+
+    }
 }
