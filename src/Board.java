@@ -91,8 +91,13 @@ public class Board {
         return -1; // column full
     }
 
-    /** TODO: Undo a move at (row, col) by clearing the cell. */
-    public void undo(int row, int col) {}
+    /** TODO: Undo a move at (row, col) by clearing the cell. - COMPLETED */
+    public void undo(int row, int col) {
+        if (row < 0 || row >= rows) throw new IllegalArgumentException("Invalid row");
+        if (col < 0 || col >= cols) throw new IllegalArgumentException("Invalid column");
+
+        grid[row][col] = ' ';
+    }
 
     /** TODO: You will need to implement this function. @return true if the board has no empty cells left. - COMPLETED */
     public boolean isFull() {
