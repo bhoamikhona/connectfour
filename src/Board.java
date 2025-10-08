@@ -9,6 +9,7 @@ public class Board {
     private char[][] grid;
 
     /**
+     * TODO: Initialize the board with the specified dimensions and connect-N. - COMPLETED
      * @param rows
      * @param cols
      * @param connect
@@ -22,6 +23,8 @@ public class Board {
     }
 
     /**
+     * TODO: Clear the board to all spaces. - COMPLETED
+     *
      * Looping through each row and each column, and setting its
      * value to an empty space character. Thereby clearing the
      * grid.
@@ -34,6 +37,7 @@ public class Board {
         }
     }
 
+    /** TODO:  You will need to fix the return values of these methods - COMPLETED */
     /**
      * Accessor method for rows
      * @return rows
@@ -53,6 +57,8 @@ public class Board {
     public int getConnect() { return connect; }
 
     /**
+     * TODO: You need to implement the logic to see if a column is full - COMPLETED
+     *
      * If the 0th row and nth column is not an empty space then return true, otherwise return false
      * @return true if the specified column is full (i.e., top cell is not empty).
      */
@@ -61,6 +67,8 @@ public class Board {
     }
 
     /**
+     * TODO: finish the for loop - COMPLETED
+     *
      * Drop a token into a column (falls to the lowest empty cell).
      * @return row index where the token landed, or -1 if the column is full.
      */
