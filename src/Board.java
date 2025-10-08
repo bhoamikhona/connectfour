@@ -94,8 +94,14 @@ public class Board {
     /** TODO: Undo a move at (row, col) by clearing the cell. */
     public void undo(int row, int col) {}
 
-    /** TODO: You will need to implement this function. @return true if the board has no empty cells left. */
+    /** TODO: You will need to implement this function. @return true if the board has no empty cells left. - COMPLETED */
     public boolean isFull() {
+        // Looping through the number of columns
+        for (int c = 0; c < cols; c++) {
+            // for each column checking if it is not full, if so, return false
+            if (!isColumnFull(c)) return false;
+        }
+        // Once out of the loop, all the loops are full so, return true
         return true;
     }
 
