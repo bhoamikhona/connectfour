@@ -126,7 +126,7 @@ public class Board {
         return 0;
     }
 
-    /** TODO: Print the board in ASCII with row/column headers. */
+    /** TODO: Print the board in ASCII with row/column headers. - COMPLETED */
     public void print() {
         System.out.println();
         System.out.println("\t***\t Connect Four \t***\t");
