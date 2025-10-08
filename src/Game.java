@@ -51,36 +51,53 @@ public class Game {
         boolean keepPlaying = true;
         while (keepPlaying) {
             /** TODO:
-             * Uncomment these lines when the functions have been implemented 
+             * Uncomment these lines when the functions have been implemented - COMPLETE
              * */
-            // Player current = turnQueue.peek();
-            // System.out.print(current.name() + " (" + current.token() + "), enter command: ");
+            // Ask the TurnQueue who is going to play next (front of the queue)
+             Player current = turnQueue.peek();
 
+             // Prompt the current player for a command (column number or a keyword)
+             System.out.print(current.name() + " (" + current.token() + "), enter command: ");
+
+            // If the input stream is closed, exit the loop
             if (!scanner.hasNextLine()) break;
+
             String line = scanner.nextLine().trim();
 
+
+            // If the player typed "quit", stop the loop and exit
             if (line.equalsIgnoreCase("quit")) {
                 keepPlaying = false;
                 System.out.println("Goodbye!");
+            // If the player typed "help, print the help menu
             } else if (line.equalsIgnoreCase("help")) {
                 printHelp();
+            // If the player typed "board", print the current board state
             } else if (line.equalsIgnoreCase("board")) {
                 board.print();
+            // If the player typed "restart", reset the game state
             } else if (line.equalsIgnoreCase("restart")) {
                 restart();
+            // If the player typed "undo", attempt to undo the last move
             } else if (line.equalsIgnoreCase("undo")) {
                 handleUndo();
             } else {
 
                 /**
-                 * TODO: Try to parse the input as a column number and drop a piece there.
+                 * TODO: Try to parse the input as a column number and drop a piece there. - COMPLETE
                  * Also handle implement error handling
                  */
                 try {
+                    // store the number in col variable
                     int col = Integer.parseInt(line);
+                    // attempt to apply the command and show the updated board
+                    handleDrop(col);
+                    board.print();
                   
                 } catch (NumberFormatException nfe) {
                     System.out.println("Invalid command. Type a column number, or try 'help'.");
+                } catch (IllegalArgumentException iae) {
+                    System.out.println(iae.getMessage());
                 }
             }
         }

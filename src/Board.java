@@ -186,10 +186,6 @@ public class Board {
 
     /** TODO: Print the board in ASCII with row/column headers. - COMPLETED */
     public void print() {
-        System.out.println();
-        System.out.println("\t***\t Connect Four \t***\t");
-        System.out.println();
-
         // Column headers
         System.out.print("\t");
         for (int c = 0; c < cols; c++)

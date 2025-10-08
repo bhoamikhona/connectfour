@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ee11643b-972c-47c3-ad7c-f29f9ccfbcde" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../Assignment 02/src/Animal.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Assignment 02/src/Bear.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Assignment 02/src/Fish.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Assignment 02/src/RiverEcosystem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Board.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -40,6 +38,9 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
     "settings.editor.selected.configurable": "editor.preferences.appearance",
     "vue.rearranger.settings.migration": "true"
   }
@@ -66,7 +67,8 @@
       <option name="presentableId" value="Default" />
       <updated>1759672884075</updated>
       <workItem from="1759672885171" duration="15780000" />
-      <workItem from="1759900219015" duration="13289000" />
+      <workItem from="1759900219015" duration="13519000" />
+      <workItem from="1759947061749" duration="1641000" />
     </task>
     <servers />
   </component>
