@@ -1,5 +1,3 @@
-package connectfour;
-
 /**
  * Immutable player descriptor with a display name and a single-character token.
  */

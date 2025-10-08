@@ -104,18 +104,75 @@ public class Game {
     }
 
     /**
-     * TODO: Handle dropping a piece in the specified column.
+     * TODO: Handle dropping a piece in the specified column. Completed
      * @param col
      */
-    private void handleDrop(int col) {}
+    private void handleDrop(int col) {
+
+        //it will check if the picked column is valid
+        if(col<0 || col >= board.getCols()){
+            throw new IllegalArgumentException("Unacceptable column number! Please try again.");
+        }
+
+        Player current = turnQueue.peek(); //it will get current player
+
+        int row = board.drop(col, current.token()); //it tells us the token that is passed is on which row
+
+        //if the column is full gives us message to change it to another column
+        if (row == -1){
+            System.out.println("That column is full. Try another one.");
+        }
+
+        //it will save the current move so it can be undone later
+        Move move = new Move(row, col, current.token());
+        undoStack.push(move);
+
+        board.print(); // will print the updated board
+
+        //in this step we will check if the current player won
+        if (board.isWinningMove(row,col)){
+            System.out.println("Congratulations!" + current.name() +"(" + current.token() +") wins!");
+            System.out.println("Type 'restart' to play again or 'quit' to exit.");
+            return; //do not rotate after win
+        }
+
+        //it will check for a draw
+        if (board.isFull()){
+            System.out.println("It is a draw! Type 'restart' to play again or 'quit' to exit.");
+            return;
+        }
+
+        turnQueue.rotate();   //it will move to the next player
+
+
+    }
 
     /**
-     * TODO: Handle undoing the last move
+     * TODO: Handle undoing the last move  - Completed
      */
-    private void handleUndo() {}
+    private void handleUndo() {
+       if (undoStack.isEmpty()){
+           System.out.println("There is no move to undo.");
+           return;
+       }
+        // will get the last move from the stack
+        Move lastMove = undoStack.pop();
+
+        // will undo that move on the board
+        board.undo(lastMove.row(), lastMove.col());
+
+        // now  it will rotate turn back to previous player
+        turnQueue.rotate();
+
+        // will print a confirmation message
+        System.out.println("Last move undone. Back to " + turnQueue.peek().name() + ".");
+        board.print();
+
+
+    }
 
     /**
-     * TODO: Restart the game
+     * TODO: Restart the game - Completed
     */
 
     private void restart() {
