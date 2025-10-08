@@ -7,6 +7,7 @@ public class Board {
     private int cols;
     private int connect; // number in a row needed to win
     private char[][] grid;
+    private static final char EMPTY = ' ';
 
     /**
      * TODO: Initialize the board with the specified dimensions and connect-N. - COMPLETED
@@ -30,9 +31,9 @@ public class Board {
      * grid.
      */
     public void clear() {
-        for (int r = 0; r < rows - 1; r++) {
-            for (int c = 0; c < cols - 1; c++) {
-                grid[r][c] = ' ';
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                grid[r][c] = EMPTY;
             }
         }
     }
@@ -63,7 +64,7 @@ public class Board {
      * @return true if the specified column is full (i.e., top cell is not empty).
      */
     public boolean isColumnFull(int col) {
-        return grid[0][col] != ' ';
+        return grid[0][col] != EMPTY;
     }
 
     /**
@@ -83,7 +84,7 @@ public class Board {
         // The first empty slot will be filled with the token
         // The index of the row will be returned
         for (int r = rows - 1; r >= 0; r--) {
-            if (grid[r][col] == ' ') {
+            if (grid[r][col] == EMPTY) {
                 grid[r][col] = token;
                 return r;
             }
@@ -96,7 +97,7 @@ public class Board {
         if (row < 0 || row >= rows) throw new IllegalArgumentException("Invalid row");
         if (col < 0 || col >= cols) throw new IllegalArgumentException("Invalid column");
 
-        grid[row][col] = ' ';
+        grid[row][col] = EMPTY;
     }
 
     /** TODO: You will need to implement this function. @return true if the board has no empty cells left. - COMPLETED */
@@ -125,10 +126,11 @@ public class Board {
         return 0;
     }
 
-    /** TODO: Print the board in ASCII with row/column headers. - COMPLETED */
+    /** TODO: Print the board in ASCII with row/column headers. */
     public void print() {
         System.out.println();
         System.out.println("\t***\t Connect Four \t***\t");
+        System.out.println();
 
         // Column headers
         System.out.print("\t");
@@ -142,14 +144,19 @@ public class Board {
 
         // Grid Print
         for (int r = 0; r < rows; r++) {
-            System.out.print("\t");
             // Row Headers
             System.out.printf("%2d | ", r);
             for (int c = 0; c < cols; c++) {
                 char ch = grid[r][c];
+                 if (ch == EMPTY) ch = '.';
                 System.out.print(ch + "  ");
             }
             System.out.println();
         }
+    }
+
+    public static void main(String[] args) {
+        Board board = new Board(6, 7, 4);
+        board.print();
     }
 }
