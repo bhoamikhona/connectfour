@@ -26,7 +26,7 @@ public class Board {
     }
 
     /**
-     * TODO: Clear the board to all spaces. - COMPLETED
+     * TODO: Clear the board to all spaces. - COMPLETED (Negar: I fixed row and cols because it was skipping one from each)
      *
      * Looping through each row and each column, and setting its
      * value to an empty space character. Thereby clearing the
@@ -135,12 +135,38 @@ public class Board {
 
     /**
      * Check if the last move at (row, col) created a connect-N in any direction.
-     * It counts in four direction pairs and subtracts 1 to avoid double counting
-     * the origin.
-     * TODO: check if the last move is a winning move
+     * It counts in four direction pairs and subtracts 1 to avoid double counting the origin.
+     * TODO: check if the last move is a winning move  -  Completed
      */
     public boolean isWinningMove(int row, int col) {
-        return true;
+        char token = grid [row][col]; //here we will get the position of the token that was just played
+        if (token == ' ')
+            return false;
+        //now we will count the same pieces horizontally like: [0][0], [0][1], [0][2],[0][3],[0][4]
+        int horizontal = countDirection(row, col, 0, 1, token)  //we move forward from the right side of the token
+                        + countDirection(row, col, 0, -1, token) //we move forward from the left side of the token
+                        - 1; //we subtract one because we counted the token twice
+
+        //now we will count the same pieces vertically like: [0][0], [1][0], [2][0],[3][0],[4][0]
+        int vertical = countDirection(row, col, 1, 0, token)     // same as horizontal but this time we count to the down side
+                + countDirection(row, col, -1, 0, token)    // we count to the up side
+                - 1; //same as horizontal because we counted the token twice
+
+        //now we will count the same pieces diagonally from the left top to down right
+        // like: [0][0], [1][1], [2][2],[3][3],[4][4]
+
+        int diagonalDown = countDirection(row, col, 1, 1, token)
+                + countDirection(row, col, -1, -1, token)
+                - 1;
+        //now we will count the same pieces diagonally from the left top to down right
+        // like: [row][col], [row-1][col-1], [row-2][col-2], [row-3][col-3],[row-4][col-4]
+
+        int diagonalUp = countDirection(row, col, 1, -1, token)
+                + countDirection(row, col, -1, 1, token)
+                - 1;
+
+        return (horizontal >= connect) ||(vertical >= connect) ||(diagonalDown >= connect) || (diagonalUp >= connect);
+
     }
 
     // TODO: recursion to count in a direction - COMPLETED
