@@ -120,6 +120,31 @@ public class Board {
         return 0;
     }
 
-    /** TODO: Print the board in ASCII with row/column headers. */
-    public void print() {}
+    /** TODO: Print the board in ASCII with row/column headers. - COMPLETED */
+    public void print() {
+        System.out.println();
+        System.out.println("\t***\t Connect Four \t***\t");
+
+        // Column headers
+        System.out.print("\t");
+        for (int c = 0; c < cols; c++) System.out.printf("%2d ", c);
+        System.out.println();
+
+        // Border
+        System.out.print("\t");
+        for (int c = 0; c < cols; c++) System.out.print("---");
+        System.out.println("-");
+
+        // Grid Print
+        for (int r = 0; r < rows; r++) {
+            System.out.print("\t");
+            // Row Headers
+            System.out.printf("%2d | ", r);
+            for (int c = 0; c < cols; c++) {
+                char ch = grid[r][c];
+                System.out.print(ch + "  ");
+            }
+            System.out.println();
+        }
+    }
 }
