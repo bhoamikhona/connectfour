@@ -18,11 +18,11 @@ public class Game {
 
     public Game() {
         /**
-         * TODO: Initialize the board, undoStack, turnQueue with the correct parameters/values
+         * TODO: Initialize the board, undoStack, turnQueue with the correct parameters/values - COMPLETE
          */
-        this.board = new Board(0, 0, 0);
-        this.undoStack = new MoveStack(0);
-        this.turnQueue = new TurnQueue(0); // capacity for up to 4 players
+        this.board = new Board(ROWS, COLS, CONNECT);
+        this.undoStack = new MoveStack(ROWS * COLS);
+        this.turnQueue = new TurnQueue(4); // capacity for up to 4 players
         this.scanner = new Scanner(System.in);
 
         // Two players by default
