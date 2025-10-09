@@ -169,6 +169,8 @@ public class Board {
 
     }
 
+
+
     // TODO: recursion to count in a direction - COMPLETED
     private int countDirection(int r, int c, int dr, int dc, char token) {
         //  Stop if out of bounds
@@ -182,6 +184,104 @@ public class Board {
         //  Otherwise, count this cell and keep going in the same direction
         return 1 + countDirection(r + dr, c + dc, dr, dc, token);
     }
+    /** analyzes the board for giving hints **/
+    public Hints getHints(char currentToken, char opponentToken) {
+        Hints hints = new Hints();
+
+        int col = 0;
+        while (col < cols) {
+
+            // check if column is full manually
+            boolean full = false;
+            if (grid[0][col] != ' ') {
+                full = true;
+            }
+
+            if (!full) {
+                int row = -1;
+
+                // find the first empty row from the bottom
+                int r = rows - 1;
+                while (r >= 0 && row == -1) {
+                    if (grid[r][col] == ' ') {
+                        row = r;
+                    }
+                    r = r - 1;
+                }
+
+                if (row != -1) {
+                    // place current player's token temporarily
+                    grid[row][col] = currentToken;
+
+                    // simulate opponent moves to check if unsafe
+                    boolean unsafe = false;
+                    int oppCol = 0;
+                    while (oppCol < cols) {
+                        boolean oppFull = false;
+                        if (grid[0][oppCol] != ' ') {
+                            oppFull = true;
+                        }
+
+                        if (!oppFull) {
+                            int oppRow = -1;
+                            int rr = rows - 1;
+                            while (rr >= 0 && oppRow == -1) {
+                                if (grid[rr][oppCol] == ' ') {
+                                    oppRow = rr;
+                                }
+                                rr = rr - 1;
+                            }
+
+                            if (oppRow != -1) {
+                                // place opponent token temporarily
+                                grid[oppRow][oppCol] = opponentToken;
+
+                                // check if opponent can win
+                                if (isWinningMove(oppRow, oppCol)) {
+                                    unsafe = true;
+                                }
+
+                                // undo opponent token
+                                grid[oppRow][oppCol] = ' ';
+                            }
+                        }
+
+                        oppCol = oppCol + 1;
+                    }
+
+                    // undo our own move
+                    grid[row][col] = ' ';
+
+                    // add to correct list
+                    if (unsafe) {
+                        hints.unsafeCols.add(col);
+                    } else {
+                        hints.safeCols.add(col);
+                    }
+                }
+            }
+
+            col = col + 1;
+        }
+
+        // choose recommended column (closest to center)
+        if (!hints.safeCols.isEmpty()) {
+            int center = cols / 2;
+            int bestCol = hints.safeCols.getFirst();
+            int i = 0;
+            while (i < hints.safeCols.size()) {
+                int c = hints.safeCols.get(i);
+                if (Math.abs(c - center) < Math.abs(bestCol - center)) {
+                    bestCol = c;
+                }
+                i = i + 1;
+            }
+            hints.recommendedCol = bestCol;
+        }
+
+        return hints;
+    }
+
 
     /** TODO: Print the board in ASCII with row/column headers. - COMPLETED */
     public void print() {
