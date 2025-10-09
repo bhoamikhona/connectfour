@@ -175,6 +175,9 @@ public class Game {
         }
 
         turnQueue.rotate();   //it will move to the next player
+
+        handleHint(); // show hint for the next player automatically
+
     }
 
     /**
