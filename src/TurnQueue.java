@@ -120,4 +120,16 @@ public class TurnQueue {
         tail = 0;
         size = 0;
     }
+
+    /**
+     * Returns the next player in the queue (after the front)
+     * without modifying the queue order.
+     * @return next player, or null if there is only one or none
+     */
+    public Player peekNext() {
+        if (size < 2) return null;
+        int nextIndex = (head + 1) % data.length;
+        return data[nextIndex];
+    }
+
 }

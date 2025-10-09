@@ -230,25 +230,25 @@ public class Game {
      * TODO: Handle showing a hint for the current player - Completed
      * **/
 
+    /**
+     * Handle showing a hint for the current player
+     */
     private void handleHint() {
-        Player current = turnQueue.peek(); // Current player at front of queue
-        Player opponent = null;
+        Player current = turnQueue.peek();       // current player
+        Player opponent = turnQueue.peekNext();  // next player, if any
 
-        // Find next player to simulate (for safety check)
-        if (turnQueue.size() > 1) {
-            opponent = turnQueue.dequeue();   // temporarily remove next player
-            turnQueue.enqueue(opponent);      // add them back to preserve order
-        }
+        char oppToken = (opponent != null)
+                ? opponent.token()
+                : (current.token() == 'X' ? 'O' : 'X');  // fallback if only 1 player
 
-        // Ask the board for hint data
-        Hints hint = board.getHints(current.token(), opponent != null ? opponent.token() : 'O');
+        Hints hints = board.getHints(current.token(), oppToken);
 
-        // Display the result in a user-friendly way
         System.out.println();
         System.out.println("=== HINT for " + current.name() + " (" + current.token() + ") ===");
-        hint.print();   // calls your Hints.print() method
+        hints.print();
         System.out.println();
     }
+
 
 
 }
