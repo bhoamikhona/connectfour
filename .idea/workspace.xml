@@ -4,15 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee11643b-972c-47c3-ad7c-f29f9ccfbcde" name="Changes" comment="Added handleHint() to handleDrop()">
+    <list default="true" id="ee11643b-972c-47c3-ad7c-f29f9ccfbcde" name="Changes" comment="Fixed a bug in handleHint() and modified TurnQueue class to fix the turn for hint">
+      <change afterPath="$PROJECT_DIR$/src/LinkedList.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TurnQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TurnQueue.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Board.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Hints.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Hints.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -86,7 +94,7 @@
       <workItem from="1759900219015" duration="13519000" />
       <workItem from="1759947061749" duration="1641000" />
       <workItem from="1760019841422" duration="2103000" />
-      <workItem from="1760021952978" duration="3786000" />
+      <workItem from="1760021952978" duration="10999000" />
     </task>
     <task id="LOCAL-00001" summary="Added handleHint() in Game class">
       <option name="closed" value="true" />
@@ -104,7 +112,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760022765377</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Fixed a bug in handleHint() and modified TurnQueue class to fix the turn for hint">
+      <option name="closed" value="true" />
+      <created>1760035156988</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1760035156988</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -124,6 +140,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added handleHint() in Game class" />
     <MESSAGE value="Added handleHint() to handleDrop()" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added handleHint() to handleDrop()" />
+    <MESSAGE value="Fixed a bug in handleHint() and modified TurnQueue class to fix the turn for hint" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed a bug in handleHint() and modified TurnQueue class to fix the turn for hint" />
   </component>
 </project>

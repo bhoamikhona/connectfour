@@ -184,24 +184,21 @@ public class Board {
         //  Otherwise, count this cell and keep going in the same direction
         return 1 + countDirection(r + dr, c + dc, dr, dc, token);
     }
+
+
     /** analyzes the board for giving hints **/
     public Hints getHints(char currentToken, char opponentToken) {
         Hints hints = new Hints();
 
         int col = 0;
         while (col < cols) {
-
-            // check if column is full manually
-            boolean full = false;
-            if (grid[0][col] != ' ') {
-                full = true;
-            }
+            // Skip full columns
+            boolean full = grid[0][col] != ' ';
 
             if (!full) {
-                int row = -1;
-
-                // find the first empty row from the bottom
+                // find landing row
                 int r = rows - 1;
+                int row = -1;
                 while (r >= 0 && row == -1) {
                     if (grid[r][col] == ' ') {
                         row = r;
@@ -210,69 +207,74 @@ public class Board {
                 }
 
                 if (row != -1) {
-                    // place current player's token temporarily
+                    // simulate dropping our piece
                     grid[row][col] = currentToken;
 
-                    // simulate opponent moves to check if unsafe
-                    boolean unsafe = false;
-                    int oppCol = 0;
-                    while (oppCol < cols) {
-                        boolean oppFull = false;
-                        if (grid[0][oppCol] != ' ') {
-                            oppFull = true;
-                        }
+                    // check if this move is winning for current player
+                    boolean winning = isWinningMove(row, col);
 
-                        if (!oppFull) {
-                            int oppRow = -1;
-                            int rr = rows - 1;
-                            while (rr >= 0 && oppRow == -1) {
-                                if (grid[rr][oppCol] == ' ') {
-                                    oppRow = rr;
-                                }
-                                rr = rr - 1;
-                            }
+                    // simulate opponent move on top of ours
+                    grid[row][col] = opponentToken;
+                    boolean opponentWin = isWinningMove(row, col);
 
-                            if (oppRow != -1) {
-                                // place opponent token temporarily
-                                grid[oppRow][oppCol] = opponentToken;
-
-                                // check if opponent can win
-                                if (isWinningMove(oppRow, oppCol)) {
-                                    unsafe = true;
-                                }
-
-                                // undo opponent token
-                                grid[oppRow][oppCol] = ' ';
-                            }
-                        }
-
-                        oppCol = oppCol + 1;
-                    }
-
-                    // undo our own move
+                    // undo
                     grid[row][col] = ' ';
 
-                    // add to correct list
-                    if (unsafe) {
+                    // classify safe/unsafe
+                    if (opponentWin) {
                         hints.unsafeCols.add(col);
                     } else {
                         hints.safeCols.add(col);
                     }
+
+                    // record immediate win candidate
+                    if (winning && hints.recommendedCol == -1) {
+                        hints.recommendedCol = col;
+                    }
                 }
             }
-
             col = col + 1;
         }
 
-        // choose recommended column (closest to center)
-        if (!hints.safeCols.isEmpty()) {
+        // === If no winning move, check if we can block opponent ===
+        if (hints.recommendedCol == -1) {
+            int c = 0;
+            while (c < cols && hints.recommendedCol == -1) {
+                if (!isColumnFull(c)) {
+                    int r = rows - 1;
+                    int row = -1;
+                    while (r >= 0 && row == -1) {
+                        if (grid[r][c] == ' ') {
+                            row = r;
+                        }
+                        r = r - 1;
+                    }
+
+                    if (row != -1) {
+                        grid[row][c] = opponentToken;
+                        if (isWinningMove(row, c)) {
+                            hints.recommendedCol = c; // block
+                        }
+                        grid[row][c] = ' ';
+                    }
+                }
+                c = c + 1;
+            }
+        }
+
+        // === Otherwise, fallback to closest-to-center safe column ===
+        if (hints.recommendedCol == -1 && !hints.safeCols.isEmpty()) {
             int center = cols / 2;
             int bestCol = hints.safeCols.getFirst();
+            int bestDist = Math.abs(bestCol - center);
+
             int i = 0;
             while (i < hints.safeCols.size()) {
                 int c = hints.safeCols.get(i);
-                if (Math.abs(c - center) < Math.abs(bestCol - center)) {
+                int dist = Math.abs(c - center);
+                if (dist < bestDist || (dist == bestDist && c > bestCol)) {
                     bestCol = c;
+                    bestDist = dist;
                 }
                 i = i + 1;
             }
@@ -281,6 +283,7 @@ public class Board {
 
         return hints;
     }
+
 
 
     /** TODO: Print the board in ASCII with row/column headers. - COMPLETED */
