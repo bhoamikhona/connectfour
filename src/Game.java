@@ -242,8 +242,7 @@ public class Game {
                 ? opponent.token()
                 : (current.token() == 'X' ? 'O' : 'X');  // fallback if only 1 player
 
-        Hints hints = board.getHints(current.token(), oppToken);
-
+        Hints hints = Hints.getHints(current.token(), oppToken, board);
         System.out.println();
         System.out.println("=== HINT for " + current.name() + " (" + current.token() + ") ===");
         hints.print();
