@@ -1,6 +1,5 @@
 /**
  * Custom singly linked list implementation for integers.
- * This replaces java.util.LinkedList and will be used in Hints.
  */
 public class LinkedList {
     //inner Node class
