@@ -38,6 +38,7 @@ public class Game {
         System.out.println("  board       -> reprint the current board");
         System.out.println("  restart     -> clear the board and start over");
         System.out.println("  help        -> show this help menu");
+        System.out.println("  hint        -> Show safe and recommended moves");
         System.out.println("  quit        -> exit the game");
         System.out.println();
     }
@@ -176,7 +177,7 @@ public class Game {
 
         turnQueue.rotate();   //it will move to the next player
 
-        handleHint(); // show hint for the next player automatically
+       // handleHint(); // show hint for the next player automatically
 
     }
 
