@@ -4,34 +4,6 @@
 # Connect Four (Java, console)
 
 A simple, fully playable **two-player Connect Four** for the terminal, written in Java. It includes a help menu, **undo**, **restart**, **board reprint**, and an on-demand **hint** system. The project is organized as an IntelliJ IDEA project but can also be compiled and run from the command line. 
-## Features
-
-* **Classic rules**: drop discs into a 7×6 grid; first to connect four (horizontal, vertical, or diagonal) wins.
-* **Console UI**: prints the board with column headers; prompts players by name/tokens.
-* **Commands**:
-
-  * `0–6` — drop into a column
-  * `board` — reprint the current board
-  * `undo` — revert the last move
-  * `restart` — clear the board and start over
-  * `hint` — show *safe* / *recommended* moves
-  * `help` — show the help menu
-  * `quit` — exit the game
-    (The help text includes `hint`, and hints were switched from auto-display to on-demand.)
-* **Hints engine**: encapsulated in a `Hints` class (with a small custom `LinkedList`) that evaluates recommended moves.
-
-## Project structure
-
-```
-src/
-  Board.java     // grid state, printing, win detection
-  Game.java      // main game loop, command handling (help/board/restart/undo/hint)
-  Player.java    // player model (name + token)
-  ...            // Hints, TurnQueue, LinkedList, etc.
-```
-
-* The **game loop** (`Game.run()`) handles reading commands, switching turns, and delegating to handlers.
-* `Player` lives in the `connectfour` package.
 
 ## Getting started
 
@@ -74,6 +46,36 @@ At each turn, the prompt shows the **current player** (name and token). Enter:
 * **`quit`** — exit
 
 Command handling and the printed help/menus are implemented in `Game.java`.
+
+## Features
+
+* **Classic rules**: drop discs into a 7×6 grid; first to connect four (horizontal, vertical, or diagonal) wins.
+* **Console UI**: prints the board with column headers; prompts players by name/tokens.
+* **Commands**:
+
+  * `0–6` — drop into a column
+  * `board` — reprint the current board
+  * `undo` — revert the last move
+  * `restart` — clear the board and start over
+  * `hint` — show *safe* / *recommended* moves
+  * `help` — show the help menu
+  * `quit` — exit the game
+    (The help text includes `hint`, and hints were switched from auto-display to on-demand.)
+* **Hints engine**: encapsulated in a `Hints` class (with a small custom `LinkedList`) that evaluates recommended moves.
+
+## Project structure
+
+```
+src/
+  Board.java     // grid state, printing, win detection
+  Game.java      // main game loop, command handling (help/board/restart/undo/hint)
+  Player.java    // player model (name + token)
+  ...            // Hints, TurnQueue, LinkedList, etc.
+```
+
+* The **game loop** (`Game.run()`) handles reading commands, switching turns, and delegating to handlers.
+* `Player` lives in the `connectfour` package.
+
 
 ## Implementation notes
 
