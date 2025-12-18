@@ -51,6 +51,11 @@ public class Game {
         System.out.println("  restart     -> clear the board and start over");
         System.out.println("  help        -> show this help menu");
         System.out.println("  hint        -> Show safe and recommended moves");
+        System.out.println();
+        System.out.println("  game ai random -> start Human vs AI (Easy Level)");
+        System.out.println("  game ai med -> start Human vs AI (Medium Level)");
+        System.out.println("  game ai hard   -> start Human vs AI (Hard level)");
+        System.out.println();
         System.out.println("register <name> -> register a new player profile");
         System.out.println("create tournament <id> <player1> <player2> ... -> create a tournament with the given players");
         System.out.println("start tournament <id> -> start playing the tournament with the given id");

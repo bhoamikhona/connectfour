@@ -137,6 +137,14 @@ public class AIPlayer {
                 //here the Monte Carlo decision happens (statistically)
                 double winRate = (double) wins / simulations;
 
+                //check if monte carlo works
+//                System.out.println(
+//                        "MonteCarlo column " + column +
+//                                " -> wins: " + wins +
+//                                " / " + simulations
+//                );
+
+
                 if (winRate > bestScore) {
                     bestScore = winRate;
                     bestColumn = column;
@@ -224,8 +232,14 @@ public class AIPlayer {
         return 0;
     }
 
-    private int minimax(Board board, int depth,
-                        int alpha, int beta, boolean maximizing) {
+    private int minimax(Board board, int depth, int alpha, int beta, boolean maximizing) {
+
+          //test if recursion works
+//        System.out.println(
+//                "MINIMAX call | depth=" + depth +
+//                        " | maximizing=" + maximizing
+//        );
+
 
         // Base case
         if (depth == 0 || board.isFull()) {
@@ -260,10 +274,18 @@ public class AIPlayer {
                     }
 
                     if (beta <= alpha) {
+//                        System.out.println("PRUNE at depth " + depth); //(test if pruning works)
                         prune = true;
                     }
                 }
             }
+              //test if recursion works
+//            System.out.println(
+//                    "RETURN depth=" + depth +
+//                            " value=" + bestValue
+//            );
+
+
             return bestValue;
         }
 
