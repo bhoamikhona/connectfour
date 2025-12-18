@@ -26,6 +26,24 @@ public class Board {
     }
 
     /**
+     * Copy constructor: creates a deep copy of another Board for the MonteCarlo algorithm use
+     */
+    public Board(Board other) {
+        this.rows = other.rows;
+        this.cols = other.cols;
+        this.connect = other.connect;
+
+        this.grid = new char[rows][cols];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                this.grid[r][c] = other.grid[r][c];
+            }
+        }
+    }
+
+
+    /**
      * TODO: Clear the board to all spaces. - COMPLETED (Negar: I fixed row and cols because it was skipping one from each)
      *
      * Looping through each row and each column, and setting its
