@@ -236,9 +236,20 @@ public class Game {
             throw new IllegalArgumentException("Unacceptable column number! Please try again.");
         }
 
-        Player current = turnQueue.peek(); //it will get current player
+        char currentToken;
+        String currentName;
 
-        int row = board.drop(col, current.token()); //it tells us the token that is passed is on which row
+        if (vsAI) {
+            currentToken = humanToken;   // X
+            currentName = "Human";
+        } else {
+            Player current = turnQueue.peek();
+            currentToken = current.token();
+            currentName = current.name();
+        }
+
+
+        int row = board.drop(col, currentToken); //it tells us the token that is passed is on which row
 
         //if the column is full gives us message to change it to another column
         if (row == -1) {
@@ -247,12 +258,12 @@ public class Game {
         }
 
         //it will save the current move so it can be undone later
-        Move move = new Move(row, col, current.token());
+        Move move = new Move(row, col, currentToken);
         undoStack.push(move);
 
         //in this step we will check if the current player won
         if (board.isWinningMove(row, col)) {
-            System.out.println("Congratulations!" + current.name() + "(" + current.token() + ") wins!");
+            System.out.println("Congratulations!" + currentName + "(" + currentToken + ") wins!");
             System.out.println("Type 'restart' to play again or 'quit' to exit.");
             gameOver = true;      // lock further numeric input
             return;               // do not rotate after win
@@ -266,6 +277,35 @@ public class Game {
         }
         if (!vsAI) {
             turnQueue.rotate();   //only rotate players in human vs human mode
+
+            if (vsAI && !gameOver) {
+                int aiCol;
+
+                if (aiLevel.equals("random")) {
+                    aiCol = aiPlayer.randomMove(board);
+                } else if (aiLevel.equals("med")) {
+                    aiCol = aiPlayer.mediumMove(board);
+                } else {
+                    aiCol = aiPlayer.hardMove(board);
+                }
+
+                int aiRow = board.drop(aiCol, aiPlayer.getToken());
+
+                Move aiMove = new Move(aiRow, aiCol, aiPlayer.getToken());
+                undoStack.push(aiMove);
+
+                System.out.println("AI played column " + aiCol);
+                board.print();
+
+                if (board.isWinningMove(aiRow, aiCol)) {
+                    System.out.println("AI wins! Type 'restart' or 'quit'.");
+                    gameOver = true;
+                } else if (board.isFull()) {
+                    System.out.println("It is a draw! Type 'restart' or 'quit'.");
+                    gameOver = true;
+                }
+            }
+
         }
 
        // handleHint(); // show hint for the next player automatically
