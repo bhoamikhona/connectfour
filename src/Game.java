@@ -25,6 +25,9 @@ public class Game {
     private String aiLevel = ""; //random, med, or hard
     private char humanToken = 'X'; //human is X, AI will be O
 
+    private PlayerStore playerStore = new PlayerStore("playerdata.txt");
+
+
 
     public Game() {
         /**
@@ -48,6 +51,10 @@ public class Game {
         System.out.println("  restart     -> clear the board and start over");
         System.out.println("  help        -> show this help menu");
         System.out.println("  hint        -> Show safe and recommended moves");
+        System.out.println("register <name> -> register a new player profile");
+        System.out.println("create tournament <id> <player1> <player2> ... -> create a tournament with the given players");
+        System.out.println("start tournament <id> -> start playing the tournament with the given id");
+        System.out.println("tournament standings <id> -> show the current standings of the tournament with the given id");
         System.out.println("  quit        -> exit the game");
         System.out.println();
     }
@@ -164,11 +171,83 @@ public class Game {
                         } else{
                             System.out.println("Unknown difficulty. Use: random, med, or hard");
                         }
+                    } 
+
+
+
+                } 
+                else if (line.toLowerCase().startsWith("register")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length != 2) {
+                        System.out.println("Usage: register <player_name>");
+                    } else {
+                        String playerName = parts[1];
+                        String mess = playerStore.register( playerName);
+                        System.out.println(mess);
                     }
+                }
+                else if (line.toLowerCase().startsWith("create tournament")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length < 6){
+                        System.out.println("Tournament needs at least 3 players to start.");
+                    }
+                    else {
+                        try{
+                            handleTournamentCreation(parts);
+                        }catch (IllegalArgumentException iae){
+                            System.out.println(iae.getMessage());
+                        }
+                    }
+                }
 
+                else if (line.toLowerCase().startsWith("start tournament")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length != 3) {
+                        System.out.println("Usage: start tournament <tournament_id>");
+                    } else {
+                        int tournamentId;
+                        try {
+                            tournamentId = Integer.parseInt(parts[2]);
+                            Tournament tournament = TournamentManager.getTournament(tournamentId);
+                            if (tournament == null) {
+                                System.out.println("Tournament with ID " + tournamentId + " does not exist.");
+                            } else {
+                                System.out.println("Starting Tournament ID: " + tournamentId);
+                                while (tournament.hasMoreMatches()) {
+                                    Match match = tournament.playNextMatch();
+                                    System.out.println("Match: " + match.getPlayer1().getName() + " vs " + match.getPlayer2().getName());
+                                    playMatchWithAI(match, tournament);
+                                }
+                                System.out.println("Tournament ID: " + tournamentId + " has concluded. Final Standings:");
+                                tournament.printStandings();
+                            }
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid tournament ID. It must be an integer.");
+                        }
+                    }
+                }
 
-
-                } else {
+                else if(line.toLowerCase().startsWith("tournament standings")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length != 3) {
+                        System.out.println("Usage: tournament standings <tournament_id>");
+                    } else {
+                        int tournamentId;
+                        try {
+                            tournamentId = Integer.parseInt(parts[2]);
+                            Tournament tournament = TournamentManager.getTournament(tournamentId);
+                            if (tournament == null) {
+                                System.out.println("Tournament with ID " + tournamentId + " does not exist.");
+                            } else {
+                                System.out.println("Current Standings for Tournament ID: " + tournamentId);
+                                tournament.printStandings();
+                            }
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid tournament ID. It must be an integer.");
+                        }
+                    }
+                }
+                else {
 
                     /**
                      * TODO: Try to parse the input as a column number and drop a piece there. - COMPLETE
@@ -222,6 +301,38 @@ public class Game {
                 }
             }
         }
+    }
+
+    private void handleTournamentCreation(String[] parts) {
+        //parts[0] = create
+        //parts[1] = tournament
+        //parts[2] = <tournament_id>
+        //parts[3...] = player names
+
+        int tournamentId;
+        try {
+            tournamentId = Integer.parseInt(parts[2]);
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Invalid tournament ID. It must be an integer.");
+        }
+
+        if (parts.length < 6) {
+            throw new IllegalArgumentException("Tournament needs at least 3 players to start.");
+        }
+        PlayerProfile[] tournamentPlayers = new PlayerProfile[parts.length - 3];
+        for (int i = 3; i < parts.length;i++){
+            String playerName = parts[i];
+            PlayerProfile p = playerStore.getProfileObject(playerName); 
+            if (p == null){
+                throw new IllegalArgumentException("Player '" + playerName + "' does not exist in the player store.");
+            }else{
+                System.out.println("Added player '" + playerName + "' to tournament " + tournamentId);
+                tournamentPlayers[i - 3] = p;
+            }
+        }
+        Tournament tournament = new Tournament(tournamentId, tournamentPlayers);
+        TournamentManager.addTournament(tournament);
+
     }
 
     /**
@@ -409,6 +520,103 @@ public class Game {
         System.out.println();
     }
 
+    private void playMatchWithAI(Match match, Tournament tournament) {
 
+        // Create a fresh board for the match
+        Board matchBoard = new Board(ROWS, COLS, CONNECT);
+        matchBoard.clear();
+
+        // Create two AI players
+        AIPlayer aiPlayer1 = new AIPlayer('X');
+        AIPlayer aiPlayer2 = new AIPlayer('O');
+
+        PlayerProfile player1 = match.getPlayer1();
+        PlayerProfile player2 = match.getPlayer2();
+
+        boolean player1Turn = true;
+
+        System.out.println("----------------------------------");
+        System.out.println("Starting match: "
+                + player1.getName() + " (X) vs "
+                + player2.getName() + " (O)");
+        matchBoard.print();
+
+        while (true) {
+
+            AIPlayer currentAI;
+            PlayerProfile currentPlayer;
+
+            if (player1Turn) {
+                currentAI = aiPlayer1;
+                currentPlayer = player1;
+            } else {
+                currentAI = aiPlayer2;
+                currentPlayer = player2;
+            }
+
+            // Choose move 
+            int col = currentAI.hardMove(matchBoard);
+
+            int row = matchBoard.drop(col, currentAI.getToken());
+
+            System.out.println(
+                    currentPlayer.getName()
+                            + " (" + currentAI.getToken() + ") plays column " + col
+            );
+
+            matchBoard.print();
+
+            // Check for win
+            if (matchBoard.isWinningMove(row, col)) {
+                System.out.println(currentPlayer.getName() + " wins the match!");
+
+                PlayerProfile loser = player1Turn ? player2 : player1;
+
+                currentPlayer.recordOverallResult(1);
+                loser.recordOverallResult(-1);
+
+                tournament.addWin(currentPlayer);
+                tournament.addLoss(loser);
+
+                waitForNextMatch();
+                return;
+            }
+
+
+            // Check for draw
+            if (matchBoard.isFull()) {
+                System.out.println("Match ended in a draw.");
+
+                player1.recordOverallResult(0);
+                player2.recordOverallResult(0);
+                waitForNextMatch();
+                return;
+            }
+
+            // Switch turns
+            player1Turn = !player1Turn;
+        }
+
+        
+    }
+
+    private void waitForNextMatch() {
+        System.out.print("Type 'next' to continue to the next match: ");
+
+        while (true) {
+            if (!scanner.hasNextLine()) {
+                return;
+            }
+
+            String input = scanner.nextLine().trim().toLowerCase();
+
+            if (input.equals("next")) {
+                System.out.println();
+                return;
+            } else {
+                System.out.print("Invalid input. Please type 'next': ");
+            }
+        }
+    }
 
 }

@@ -18,17 +18,17 @@ public class AVLTree {
     // AVLNode inner class
     // -------------------
     public static class AVLNode {
-        private Player player;
+        private PlayerProfile player;
         private int height, wins;
         private AVLNode left, right;
 
-        public AVLNode(Player player, int wins) {
+        public AVLNode(PlayerProfile player, int wins) {
             this.player = player;
             this.wins = wins;
             this.height = 1;
         }
 
-        public Player getPlayer() { return player; }
+        public PlayerProfile getPlayer() { return player; }
         public AVLNode getLeft() { return left; }
         public AVLNode getRight() { return right; }
         public int getHeight() { return height; }
@@ -93,7 +93,7 @@ public class AVLTree {
         if (node1.getWins() != node2.getWins()) {
             return node2.getWins() - node1.getWins();
         }
-        return node1.getPlayer().name().compareTo(node2.getPlayer().name());
+        return node1.getPlayer().getName().compareTo(node2.getPlayer().getName());
     }
 
     private AVLNode insert(AVLNode current, AVLNode newNode) {
@@ -121,12 +121,11 @@ public class AVLTree {
         return balance(current);
     }
 
-    public void insert(Player player, int wins) {
+    public void insert(PlayerProfile player, int wins) {
         AVLNode newNode = new AVLNode(player, wins);
         root = insert(root, newNode);
     }
-
-    public int remove(Player player) {
+    public int remove(PlayerProfile player) {
         AVLNode targetNode = findNodeByPlayer(root, player);
         if (targetNode != null) {
             int wins = targetNode.getWins();
@@ -169,9 +168,9 @@ public class AVLTree {
     }
 
     //Kinda weird, defeats the purpose of an AVL tree ordered by wins but I don't really have a choice if I want to update wins do I?
-    private AVLNode findNodeByPlayer(AVLNode node, Player player) {
+    private AVLNode findNodeByPlayer(AVLNode node, PlayerProfile player) {
         if (node == null) return null;
-        if (node.getPlayer().equals(player)) return node;
+        if (node.getPlayer() != null && player != null && node.getPlayer().getName().equals(player.getName())) return node;
 
         AVLNode leftResult = findNodeByPlayer(node.getLeft(), player);
         if (leftResult != null) return leftResult;
@@ -191,7 +190,7 @@ public class AVLTree {
         printInOrder(node.getLeft());
 
         // Print current player
-        System.out.println(node.getPlayer().name() + " - Wins: " + node.getWins());
+        System.out.println(node.getPlayer().getName() + " - Wins: " + node.getWins());
 
         printInOrder(node.getRight());
     }

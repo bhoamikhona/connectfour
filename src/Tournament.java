@@ -1,16 +1,15 @@
 public class Tournament {
     
-    private int id;
     private TournamentQueue matchQueue;
     private AVLTree standings;
-
-    public Tournament(int id, Player[] players) {
-        this.id = id;
+    private int id;
+    public Tournament(int id, PlayerProfile[] players) {
         this.matchQueue = new TournamentQueue(players);
         this.standings = new AVLTree();
-        for (Player player : players) {
+        for (PlayerProfile player : players) {
             standings.insert(player, 0); // Initialize with 0 wins
         }
+        this.id = id;
     }
 
     public int getId() {
@@ -28,15 +27,13 @@ public class Tournament {
     public boolean hasMoreMatches() {
         return !matchQueue.isEmpty();
     }
-
-    public void addWin(Player player) {
+    public void addWin(PlayerProfile player) {
         int wins = standings.remove(player);
         if (wins != Integer.MIN_VALUE) { // player exists
             standings.insert(player, wins + 1);
         }
     }
-
-    public void addLoss(Player player) {
+    public void addLoss(PlayerProfile player) {
         int wins = standings.remove(player);
         if (wins != Integer.MIN_VALUE) { // player exists
             standings.insert(player, wins - 1);
