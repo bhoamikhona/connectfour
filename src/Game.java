@@ -591,9 +591,6 @@ public class Game {
 
                 PlayerProfile loser = player1Turn ? player2 : player1;
 
-                currentPlayer.recordOverallResult(1);
-                loser.recordOverallResult(-1);
-
                 tournament.addWin(currentPlayer);
                 tournament.addLoss(loser);
 
@@ -617,23 +614,81 @@ public class Game {
 
     }
 
+    /**
+     * TODO: pause after a match until the user types "next" - COMPLETED
+     *
+     * This method is used between tournament matches.
+     * It stops the program and waits for the user to type "next"
+     * before continuing to the next match.
+     *
+     * While waiting, the user can also view tournament standings.
+     */
     private void waitForNextMatch() {
+
+        // Prompt the user to continue
         System.out.print("Type 'next' to continue to the next match: ");
 
+        // Keep looping until valid input is given
         while (true) {
+
+            // If there is no more input, exit the method
             if (!scanner.hasNextLine()) {
                 return;
             }
 
-            String input = scanner.nextLine().trim().toLowerCase();
+            // Read the user's input and remove extra spaces
+            String input = scanner.nextLine().trim();
 
-            if (input.equals("next")) {
-                System.out.println();
+            // Convert input to lowercase so commands are case-insensitive
+            String lower = input.toLowerCase();
+
+            // If the user types "next", exit this method and continue tournament
+            if (lower.startsWith("next")) {
+                System.out.println(); // spacing for cleaner output
                 return;
-            } else {
-                System.out.print("Invalid input. Please type 'next': ");
             }
+
+            // If the user wants to see tournament standings
+            if (lower.startsWith("tournament standings")) {
+
+                // Split the command into parts
+                String[] parts = lower.split("\\s+");
+
+                // Check if the command format is correct
+                if (parts.length != 3) {
+                    System.out.println("Usage: tournament standings <tournament_id>");
+                } else {
+                    try {
+                        // Convert tournament id from String to integer
+                        int tournamentId = Integer.parseInt(parts[2]);
+
+                        // Get the tournament from the TournamentManager
+                        Tournament tournament = TournamentManager.getTournament(tournamentId);
+
+                        // If the tournament does not exist, print an error
+                        if (tournament == null) {
+                            System.out.println("Tournament with ID " + tournamentId + " does not exist.");
+                        } else {
+                            // Print the current standings for the tournament
+                            System.out.println("Current Standings for Tournament ID: " + tournamentId);
+                            tournament.printStandings();
+                        }
+
+                    } catch (NumberFormatException nfe) {
+                        // If the tournament id is not a number
+                        System.out.println("Invalid tournament ID. It must be an integer.");
+                    }
+                }
+
+                // After showing standings, ask again for "next"
+                System.out.print("Type 'next' to continue to the next match: ");
+                continue;
+            }
+
+            // Any other input is invalid while waiting
+            System.out.print("Invalid input. Please type 'next': ");
         }
     }
+
 
 }

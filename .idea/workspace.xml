@@ -7,14 +7,7 @@
     <list default="true" id="ee11643b-972c-47c3-ad7c-f29f9ccfbcde" name="Changes" comment="Logic of getHint() is improved">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/playerdata.txt" beforeDir="false" afterPath="$PROJECT_DIR$/playerdata.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AVLTree.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/AVLTree.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Board.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MoveStack.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MoveStack.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Tournament.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Tournament.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TournamentManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TournamentManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TournamentQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TournamentQueue.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TurnQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TurnQueue.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +98,7 @@
       <workItem from="1760661826226" duration="4432000" />
       <workItem from="1766101594371" duration="2733000" />
       <workItem from="1766115915634" duration="34000" />
-      <workItem from="1766118869755" duration="2152000" />
+      <workItem from="1766118869755" duration="5196000" />
     </task>
     <task id="LOCAL-00001" summary="Added handleHint() in Game class">
       <option name="closed" value="true" />
