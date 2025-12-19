@@ -89,6 +89,8 @@ public class AIPlayer {
 
     public int hardMove(Board board) {
 
+        MonteCarloNode root = new MonteCarloNode(-1);
+
         int cols = board.getCols();
         int simulations = 200;
 
@@ -113,37 +115,30 @@ public class AIPlayer {
             }
         }
 
-        //step 3: Monte Carlo decision making
+        // Step 3: Monte Carlo decision making (explicit stored tree)
         for (int column = 0; column < cols; column++) {
 
             if (!board.isColumnFull(column)) {
 
-                int wins = 0;
+                // create a node for this move
+                MonteCarloNode node = new MonteCarloNode(column);
+                root.children.add(node);
 
-                //Monte Carlo loop ( we count how many times AI wins)
                 for (int i = 0; i < simulations; i++) {
 
-                    Board simBoard = new Board(board); //copy of the board
-
+                    Board simBoard = new Board(board); // copy of the board
                     simBoard.drop(column, token);
 
                     char winner = randomPlayout(simBoard, opp);
 
                     if (winner == token) {
-                        wins++;
+                        node.recordResult(true);
+                    } else {
+                        node.recordResult(false);
                     }
                 }
 
-                //here the Monte Carlo decision happens (statistically)
-                double winRate = (double) wins / simulations;
-
-                //check if monte carlo works
-//                System.out.println(
-//                        "MonteCarlo column " + column +
-//                                " -> wins: " + wins +
-//                                " / " + simulations
-//                );
-
+                double winRate = node.winRate();
 
                 if (winRate > bestScore) {
                     bestScore = winRate;
@@ -151,9 +146,21 @@ public class AIPlayer {
                 }
             }
         }
+        //test for MonteCarlo
+//        for (MonteCarloNode node : root.children) {
+//            System.out.println(
+//                    "Move " + node.move +
+//                            " -> wins: " + node.wins +
+//                            " / sims: " + node.simulations +
+//                            " | winRate=" + node.winRate()
+//            );
+//        }
+//
+//        System.out.println("Chosen move: " + bestColumn);
 
         return bestColumn;
     }
+
 
     /**
      * helper methods (methods that help other methods to work in this file)
