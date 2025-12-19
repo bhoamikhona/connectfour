@@ -26,7 +26,8 @@ public class Board {
     }
 
     /**
-     * Copy constructor: creates a deep copy of another Board for the MonteCarlo algorithm use
+     * Copy constructor: creates a deep copy of another Board for the MonteCarlo
+     * algorithm use
      */
     public Board(Board other) {
         this.rows = other.rows;
@@ -42,9 +43,9 @@ public class Board {
         }
     }
 
-
     /**
-     * TODO: Clear the board to all spaces. - COMPLETED (Negar: I fixed row and cols because it was skipping one from each)
+     * TODO: Clear the board to all spaces. - COMPLETED (Negar: I fixed row and cols
+     * because it was skipping one from each)
      *
      * Looping through each row and each column, and setting its
      * value to an empty space character. Thereby clearing the
@@ -86,7 +87,9 @@ public class Board {
         return connect;
     }
 
-    public char[][] getGrid() { return grid; }
+    public char[][] getGrid() {
+        return grid;
+    }
 
     /**
      * TODO: You need to implement the logic to see if a column is full - COMPLETED
@@ -155,53 +158,56 @@ public class Board {
 
     /**
      * Check if the last move at (row, col) created a connect-N in any direction.
-     * It counts in four direction pairs and subtracts 1 to avoid double counting the origin.
-     * TODO: check if the last move is a winning move  -  Completed
+     * It counts in four direction pairs and subtracts 1 to avoid double counting
+     * the origin.
+     * TODO: check if the last move is a winning move - Completed
      */
     public boolean isWinningMove(int row, int col) {
-        char token = grid [row][col]; //here we will get the position of the token that was just played
+        char token = grid[row][col]; // here we will get the position of the token that was just played
         if (token == ' ')
             return false;
-        //now we will count the same pieces horizontally like: [0][0], [0][1], [0][2],[0][3],[0][4]
-        int horizontal = countDirection(row, col, 0, 1, token)  //we move forward from the right side of the token
-                        + countDirection(row, col, 0, -1, token) //we move forward from the left side of the token
-                        - 1; //we subtract one because we counted the token twice
+        // now we will count the same pieces horizontally like: [0][0], [0][1],
+        // [0][2],[0][3],[0][4]
+        int horizontal = countDirection(row, col, 0, 1, token) // we move forward from the right side of the token
+                + countDirection(row, col, 0, -1, token) // we move forward from the left side of the token
+                - 1; // we subtract one because we counted the token twice
 
-        //now we will count the same pieces vertically like: [0][0], [1][0], [2][0],[3][0],[4][0]
-        int vertical = countDirection(row, col, 1, 0, token)     // same as horizontal but this time we count to the down side
-                + countDirection(row, col, -1, 0, token)    // we count to the up side
-                - 1; //same as horizontal because we counted the token twice
+        // now we will count the same pieces vertically like: [0][0], [1][0],
+        // [2][0],[3][0],[4][0]
+        int vertical = countDirection(row, col, 1, 0, token) // same as horizontal but this time we count to the down
+                                                             // side
+                + countDirection(row, col, -1, 0, token) // we count to the up side
+                - 1; // same as horizontal because we counted the token twice
 
-        //now we will count the same pieces diagonally from the left top to down right
+        // now we will count the same pieces diagonally from the left top to down right
         // like: [0][0], [1][1], [2][2],[3][3],[4][4]
 
         int diagonalDown = countDirection(row, col, 1, 1, token)
                 + countDirection(row, col, -1, -1, token)
                 - 1;
-        //now we will count the same pieces diagonally from the left top to down right
-        // like: [row][col], [row-1][col-1], [row-2][col-2], [row-3][col-3],[row-4][col-4]
+        // now we will count the same pieces diagonally from the left top to down right
+        // like: [row][col], [row-1][col-1], [row-2][col-2],
+        // [row-3][col-3],[row-4][col-4]
 
         int diagonalUp = countDirection(row, col, 1, -1, token)
                 + countDirection(row, col, -1, 1, token)
                 - 1;
 
-        return (horizontal >= connect) ||(vertical >= connect) ||(diagonalDown >= connect) || (diagonalUp >= connect);
+        return (horizontal >= connect) || (vertical >= connect) || (diagonalDown >= connect) || (diagonalUp >= connect);
 
     }
 
-
-
     // TODO: recursion to count in a direction - COMPLETED
     private int countDirection(int r, int c, int dr, int dc, char token) {
-        //  Stop if out of bounds
+        // Stop if out of bounds
         if (r < 0 || r >= rows || c < 0 || c >= cols)
             return 0;
 
-        //  Stop if cell doesn't match the token
+        // Stop if cell doesn't match the token
         if (grid[r][c] != token)
             return 0;
 
-        //  Otherwise, count this cell and keep going in the same direction
+        // Otherwise, count this cell and keep going in the same direction
         return 1 + countDirection(r + dr, c + dc, dr, dc, token);
     }
 

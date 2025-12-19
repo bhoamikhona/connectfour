@@ -20,18 +20,17 @@ public class Game {
     /**
      * AI Fields
      */
-    private AIPlayer aiPlayer = null;  //AI player object
-    private boolean vsAI = false; //Are we playing vs AI?
-    private String aiLevel = ""; //random, med, or hard
-    private char humanToken = 'X'; //human is X, AI will be O
+    private AIPlayer aiPlayer = null; // AI player object
+    private boolean vsAI = false; // Are we playing vs AI?
+    private String aiLevel = ""; // random, med, or hard
+    private char humanToken = 'X'; // human is X, AI will be O
 
     private PlayerStore playerStore = new PlayerStore("playerdata.txt");
 
-
-
     public Game() {
         /**
-         * TODO: Initialize the board, undoStack, turnQueue with the correct parameters/values - COMPLETE
+         * TODO: Initialize the board, undoStack, turnQueue with the correct
+         * parameters/values - COMPLETE
          */
         this.board = new Board(ROWS, COLS, CONNECT);
         this.undoStack = new MoveStack(ROWS * COLS);
@@ -44,25 +43,41 @@ public class Game {
     }
 
     private void printHelp() {
-        System.out.println("Commands:");
-        System.out.println("  [0-" + (board.getCols() - 1) + "]  -> drop a piece in that column");
-        System.out.println("  undo        -> undo the last move (disabled after game ends)");
-        System.out.println("  board       -> reprint the current board");
-        System.out.println("  restart     -> clear the board and start over");
-        System.out.println("  help        -> show this help menu");
-        System.out.println("  hint        -> Show safe and recommended moves");
+        final int W = 32;
+
+        System.out.println("Commands:\n");
+
+        // helper printer (keeps "->" aligned)
+        java.util.function.BiConsumer<String, String> line =
+                (cmd, desc) -> System.out.printf("  %-" + W + "s -> %s%n", cmd, desc);
+
+        // Core gameplay
+        line.accept("[0-6]", "drop a piece in that column");
+        line.accept("undo", "undo the last move (disabled after game ends)");
+        line.accept("board", "reprint the current board");
+        line.accept("restart", "clear the board and start over");
+        line.accept("help", "show this help menu");
+        line.accept("hint", "show safe/unsafe columns + a recommendation");
         System.out.println();
-        System.out.println("  game ai random -> start Human vs AI (Easy Level)");
-        System.out.println("  game ai med -> start Human vs AI (Medium Level)");
-        System.out.println("  game ai hard   -> start Human vs AI (Hard level)");
+
+        // AI gameplay
+        line.accept("game ai random", "start Human vs AI (Easy)");
+        line.accept("game ai med", "start Human vs AI (Medium)");
+        line.accept("game ai hard", "start Human vs AI (Hard)");
         System.out.println();
-        System.out.println("register <name> -> register a new player profile");
-        System.out.println("create tournament <id> <player1> <player2> ... -> create a tournament with the given players");
-        System.out.println("start tournament <id> -> start playing the tournament with the given id");
-        System.out.println("tournament standings <id> -> show the current standings of the tournament with the given id");
-        System.out.println("  quit        -> exit the game");
+
+        // Profiles + tournaments
+        line.accept("register <name>", "register a new player profile");
+        line.accept("create tournament <id> <p1> <p2> ...", "create a tournament with the given players");
+        line.accept("start tournament <id>", "start playing the tournament with the given id");
+        line.accept("tournament standings <id>", "show standings for the given tournament");
+        System.out.println();
+
+        // Exit
+        line.accept("quit", "exit the game");
         System.out.println();
     }
+
 
     public void run() {
         System.out.println("=== Connect-Four Mini (Terminal) ===");
@@ -95,33 +110,37 @@ public class Game {
                     } else if (line.equalsIgnoreCase("undo")) {
                         System.out.println("Undo is not allowed after the game ends. Type 'restart' to play again.");
                     } else {
-                        System.out.println("After the game ends, only 'restart', 'board', 'help', or 'quit' are allowed.");
+                        System.out.println(
+                                "After the game ends, only 'restart', 'board', 'help', or 'quit' are allowed.");
                     }
                 }
 
             } else {
-                /** TODO:
+                /**
+                 * TODO:
                  * Uncomment these lines when the functions have been implemented - COMPLETE
-                 * */
+                 */
 
                 // If we are NOT in AI mode, use the traditional TurnQueue
                 if (!vsAI) {
                     Player current = turnQueue.peek();
                     System.out.print(current.name() + " (" + current.token() + "), enter command: ");
                 }
-                //  If we ARE in AI mode, only ask the HUMAN for input
+                // If we ARE in AI mode, only ask the HUMAN for input
                 else {
                     System.out.print("Human (X), enter command: ");
                 }
 
-//                // Ask the TurnQueue who is going to play next (front of the queue)
-//                Player current = turnQueue.peek();
-//
-//                // Prompt the current player for a command (column number or a keyword)
-//                System.out.print(current.name() + " (" + current.token() + "), enter command: ");
+                // // Ask the TurnQueue who is going to play next (front of the queue)
+                // Player current = turnQueue.peek();
+                //
+                // // Prompt the current player for a command (column number or a keyword)
+                // System.out.print(current.name() + " (" + current.token() + "), enter command:
+                // ");
 
                 // If the input stream is closed, exit the loop
-                if (!scanner.hasNextLine()) break;
+                if (!scanner.hasNextLine())
+                    break;
 
                 String line = scanner.nextLine().trim();
 
@@ -138,7 +157,8 @@ public class Game {
                     // If the player typed "restart", reset the game state
                 } else if (line.equalsIgnoreCase("restart")) {
                     restart();
-                    // If the player typed "undo", attempt to undo the last move (allowed only mid-game)
+                    // If the player typed "undo", attempt to undo the last move (allowed only
+                    // mid-game)
                 } else if (line.equalsIgnoreCase("undo")) {
                     handleUndo();
                 } else if (line.equalsIgnoreCase("hint")) {
@@ -146,60 +166,55 @@ public class Game {
                     /**
                      * Start a gamme vs AI
                      */
-                } else if  ( line.toLowerCase().startsWith("game ai")){
-                    String[] parts =line.split("\\s+");
+                } else if (line.toLowerCase().startsWith("game ai")) {
+                    String[] parts = line.split("\\s+");
 
                     if (parts.length < 3) {
                         System.out.println("Usage: game ai < random | med | hard >");
                     } else {
                         String level = parts[2].toLowerCase();
 
-                        if (level.equals ("random") || level.equals("med") || level.equals("hard")) {
+                        if (level.equals("random") || level.equals("med") || level.equals("hard")) {
 
-                            //Enable AI mode
+                            // Enable AI mode
                             vsAI = true;
                             aiLevel = level;
                             humanToken = 'X';
                             aiPlayer = new AIPlayer('O');
                             gameOver = false;
 
-                            //Reset the game state
+                            // Reset the game state
                             board.clear();
                             undoStack.clear();
-                            turnQueue.clear(); //this is not used in AI mode
+                            turnQueue.clear(); // this is not used in AI mode
 
                             System.out.println("Starting Human vs AI game");
                             System.out.println("AI difficulty:" + aiLevel);
                             System.out.println("You are X and AI is O");
                             board.print();
 
-                        } else{
+                        } else {
                             System.out.println("Unknown difficulty. Use: random, med, or hard");
                         }
-                    } 
+                    }
 
-
-
-                } 
-                else if (line.toLowerCase().startsWith("register")) {
+                } else if (line.toLowerCase().startsWith("register")) {
                     String[] parts = line.split("\\s+");
                     if (parts.length != 2) {
                         System.out.println("Usage: register <player_name>");
                     } else {
                         String playerName = parts[1];
-                        String mess = playerStore.register( playerName);
+                        String mess = playerStore.register(playerName);
                         System.out.println(mess);
                     }
-                }
-                else if (line.toLowerCase().startsWith("create tournament")) {
+                } else if (line.toLowerCase().startsWith("create tournament")) {
                     String[] parts = line.split("\\s+");
-                    if (parts.length < 6){
+                    if (parts.length < 6) {
                         System.out.println("Tournament needs at least 3 players to start.");
-                    }
-                    else {
-                        try{
+                    } else {
+                        try {
                             handleTournamentCreation(parts);
-                        }catch (IllegalArgumentException iae){
+                        } catch (IllegalArgumentException iae) {
                             System.out.println(iae.getMessage());
                         }
                     }
@@ -220,10 +235,12 @@ public class Game {
                                 System.out.println("Starting Tournament ID: " + tournamentId);
                                 while (tournament.hasMoreMatches()) {
                                     Match match = tournament.playNextMatch();
-                                    System.out.println("Match: " + match.getPlayer1().getName() + " vs " + match.getPlayer2().getName());
+                                    System.out.println("Match: " + match.getPlayer1().getName() + " vs "
+                                            + match.getPlayer2().getName());
                                     playMatchWithAI(match, tournament);
                                 }
-                                System.out.println("Tournament ID: " + tournamentId + " has concluded. Final Standings:");
+                                System.out
+                                        .println("Tournament ID: " + tournamentId + " has concluded. Final Standings:");
                                 tournament.printStandings();
                             }
                         } catch (NumberFormatException nfe) {
@@ -232,7 +249,7 @@ public class Game {
                     }
                 }
 
-                else if(line.toLowerCase().startsWith("tournament standings")) {
+                else if (line.toLowerCase().startsWith("tournament standings")) {
                     String[] parts = line.split("\\s+");
                     if (parts.length != 3) {
                         System.out.println("Usage: tournament standings <tournament_id>");
@@ -251,11 +268,11 @@ public class Game {
                             System.out.println("Invalid tournament ID. It must be an integer.");
                         }
                     }
-                }
-                else {
+                } else {
 
                     /**
-                     * TODO: Try to parse the input as a column number and drop a piece there. - COMPLETE
+                     * TODO: Try to parse the input as a column number and drop a piece there. -
+                     * COMPLETE
                      * Also handle implement error handling
                      */
                     try {
@@ -296,8 +313,6 @@ public class Game {
                             }
                         }
 
-
-
                     } catch (NumberFormatException nfe) {
                         System.out.println("Invalid command. Type a column number, or try 'help'.");
                     } catch (IllegalArgumentException iae) {
@@ -309,10 +324,10 @@ public class Game {
     }
 
     private void handleTournamentCreation(String[] parts) {
-        //parts[0] = create
-        //parts[1] = tournament
-        //parts[2] = <tournament_id>
-        //parts[3...] = player names
+        // parts[0] = create
+        // parts[1] = tournament
+        // parts[2] = <tournament_id>
+        // parts[3...] = player names
 
         int tournamentId;
         try {
@@ -325,12 +340,12 @@ public class Game {
             throw new IllegalArgumentException("Tournament needs at least 3 players to start.");
         }
         PlayerProfile[] tournamentPlayers = new PlayerProfile[parts.length - 3];
-        for (int i = 3; i < parts.length;i++){
+        for (int i = 3; i < parts.length; i++) {
             String playerName = parts[i];
-            PlayerProfile p = playerStore.getProfileObject(playerName); 
-            if (p == null){
+            PlayerProfile p = playerStore.getProfileObject(playerName);
+            if (p == null) {
                 throw new IllegalArgumentException("Player '" + playerName + "' does not exist in the player store.");
-            }else{
+            } else {
                 System.out.println("Added player '" + playerName + "' to tournament " + tournamentId);
                 tournamentPlayers[i - 3] = p;
             }
@@ -347,7 +362,7 @@ public class Game {
      */
     private void handleDrop(int col) {
 
-        //it will check if the picked column is valid
+        // it will check if the picked column is valid
         if (col < 0 || col >= board.getCols()) {
             throw new IllegalArgumentException("Unacceptable column number! Please try again.");
         }
@@ -356,7 +371,7 @@ public class Game {
         String currentName;
 
         if (vsAI) {
-            currentToken = humanToken;   // X
+            currentToken = humanToken; // X
             currentName = "Human";
         } else {
             Player current = turnQueue.peek();
@@ -364,35 +379,34 @@ public class Game {
             currentName = current.name();
         }
 
+        int row = board.drop(col, currentToken); // it tells us the token that is passed is on which row
 
-        int row = board.drop(col, currentToken); //it tells us the token that is passed is on which row
-
-        //if the column is full gives us message to change it to another column
+        // if the column is full gives us message to change it to another column
         if (row == -1) {
             System.out.println("That column is full. Try another one.");
             return;
         }
 
-        //it will save the current move so it can be undone later
+        // it will save the current move so it can be undone later
         Move move = new Move(row, col, currentToken);
         undoStack.push(move);
 
-        //in this step we will check if the current player won
+        // in this step we will check if the current player won
         if (board.isWinningMove(row, col)) {
             System.out.println("Congratulations!" + currentName + "(" + currentToken + ") wins!");
             System.out.println("Type 'restart' to play again or 'quit' to exit.");
-            gameOver = true;      // lock further numeric input
-            return;               // do not rotate after win
+            gameOver = true; // lock further numeric input
+            return; // do not rotate after win
         }
 
-        //it will check for a draw
+        // it will check for a draw
         if (board.isFull()) {
             System.out.println("It is a draw! Type 'restart' to play again or 'quit' to exit.");
-            gameOver = true;      // lock further numeric input
+            gameOver = true; // lock further numeric input
             return;
         }
         if (!vsAI) {
-            turnQueue.rotate();   //only rotate players in human vs human mode
+            turnQueue.rotate(); // only rotate players in human vs human mode
 
             if (vsAI && !gameOver) {
                 int aiCol;
@@ -424,12 +438,12 @@ public class Game {
 
         }
 
-       // handleHint(); // show hint for the next player automatically
+        // handleHint(); // show hint for the next player automatically
 
     }
 
     /**
-     * TODO: Handle undoing the last move  - Completed
+     * TODO: Handle undoing the last move - Completed
      */
     private void handleUndo() {
         // Disallow undo after game end
@@ -449,7 +463,7 @@ public class Game {
         // will undo that move on the board
         board.undo(lastMove.row(), lastMove.col());
 
-        // now  it will rotate turn back to previous player (If it is vs human)
+        // now it will rotate turn back to previous player (If it is vs human)
         if (!vsAI) {
             turnQueue.rotate();
         }
@@ -462,22 +476,23 @@ public class Game {
      * TODO: Restart the game - Completed
      */
     private void restart() {
-        board.clear(); //this will clear the board
-        undoStack.clear(); //This will clear the undo stack
+        board.clear(); // this will clear the board
+        undoStack.clear(); // This will clear the undo stack
         turnQueue.clear(); // this will reset the turn queue
 
-        //now we should add the two players in order again
+        // now we should add the two players in order again
         turnQueue.enqueue(new Player("Player 1", 'X'));
         turnQueue.enqueue(new Player("Player 2", 'O'));
 
-        System.out.println("Game restarted!"); //we print a confirmation message
-        board.print(); //print the empty board again
+        System.out.println("Game restarted!"); // we print a confirmation message
+        board.print(); // print the empty board again
         gameOver = false;
     }
 
-    /** Here we define a method to handle the hints
+    /**
+     * Here we define a method to handle the hints
      * TODO: Handle showing a hint for the current player - Completed
-     * **/
+     **/
 
     /**
      * Handle showing a hint for the current player
@@ -491,12 +506,12 @@ public class Game {
         // HUMAN vs AI MODE
         if (vsAI) {
 
-            currentToken = humanToken;          // Human is X
+            currentToken = humanToken; // Human is X
             opponentToken = aiPlayer.getToken(); // AI is O
             playerLabel = "Human";
 
         }
-        //  HUMAN vs HUMAN MODE
+        // HUMAN vs HUMAN MODE
         else {
 
             Player current = turnQueue.peek();
@@ -559,15 +574,14 @@ public class Game {
                 currentPlayer = player2;
             }
 
-            // Choose move 
+            // Choose move
             int col = currentAI.hardMove(matchBoard);
 
             int row = matchBoard.drop(col, currentAI.getToken());
 
             System.out.println(
                     currentPlayer.getName()
-                            + " (" + currentAI.getToken() + ") plays column " + col
-            );
+                            + " (" + currentAI.getToken() + ") plays column " + col);
 
             matchBoard.print();
 
@@ -587,7 +601,6 @@ public class Game {
                 return;
             }
 
-
             // Check for draw
             if (matchBoard.isFull()) {
                 System.out.println("Match ended in a draw.");
@@ -602,7 +615,6 @@ public class Game {
             player1Turn = !player1Turn;
         }
 
-        
     }
 
     private void waitForNextMatch() {

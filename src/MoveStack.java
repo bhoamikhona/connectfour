@@ -104,6 +104,7 @@ public class MoveStack {
 
     /**
      * Returns how many moves are in the stack.
+     * 
      * @return current number of elements (equal to top + 1)
      */
     public int size() {

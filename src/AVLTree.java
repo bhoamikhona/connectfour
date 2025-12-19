@@ -24,7 +24,7 @@ public class AVLTree {
 
         public AVLNode(PlayerProfile player, int wins) {
             this.player = player;
-            this.wins = wins;
+            this.wins = (player!=null) ? player.getWins() : wins;
             this.height = 1;
         }
 
@@ -32,7 +32,7 @@ public class AVLTree {
         public AVLNode getLeft() { return left; }
         public AVLNode getRight() { return right; }
         public int getHeight() { return height; }
-        public int getWins() { return wins; }
+        public int getWins() { return (player !=null)?player.getWins():wins; }
 
         public void setLeft(AVLNode left) { this.left = left; }
         public void setRight(AVLNode right) { this.right = right; }

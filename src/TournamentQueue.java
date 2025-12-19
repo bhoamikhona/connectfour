@@ -3,6 +3,7 @@ public class TournamentQueue {
     private int size;
     private int head;
     private PlayerProfile[] players;
+
     public TournamentQueue(PlayerProfile[] players) {
         this.matches = new Match[players.length * (players.length - 1) / 2];
         this.players = players;
@@ -13,43 +14,42 @@ public class TournamentQueue {
     }
 
     private void generateRoundRobinMatchs() {
-    int n = players.length;
+        int n = players.length;
 
-    // If odd number of players, add a dummy
-    boolean hasDummy = (n % 2 != 0);
-    PlayerProfile[] tempPlayers;
+        // If odd number of players, add a dummy
+        boolean hasDummy = (n % 2 != 0);
+        PlayerProfile[] tempPlayers;
 
-    if (hasDummy) {
-        tempPlayers = new PlayerProfile[n + 1];
-        System.arraycopy(players, 0, tempPlayers, 0, n);
-        tempPlayers[n] = null; // Dummy player
-        n++;
-    } else {
-        tempPlayers = players.clone();
-    }
+        if (hasDummy) {
+            tempPlayers = new PlayerProfile[n + 1];
+            System.arraycopy(players, 0, tempPlayers, 0, n);
+            tempPlayers[n] = null; // Dummy player
+            n++;
+        } else {
+            tempPlayers = players.clone();
+        }
 
-    int rounds = n - 1;
-    int matchesPerRound = n / 2;
+        int rounds = n - 1;
+        int matchesPerRound = n / 2;
 
-    for (int round = 0; round < rounds; round++) {
-        for (int i = 0; i < matchesPerRound; i++) {
-            PlayerProfile p1 = tempPlayers[i];
-            PlayerProfile p2 = tempPlayers[n - 1 - i];
+        for (int round = 0; round < rounds; round++) {
+            for (int i = 0; i < matchesPerRound; i++) {
+                PlayerProfile p1 = tempPlayers[i];
+                PlayerProfile p2 = tempPlayers[n - 1 - i];
 
-            if (p1 != null && p2 != null) {
-                enqueue(new Match(p1, p2));
+                if (p1 != null && p2 != null) {
+                    enqueue(new Match(p1, p2));
+                }
             }
-        }
 
-        // Rotate players (except index 0)
-        PlayerProfile last = tempPlayers[n - 1];
-        for (int i = n - 1; i > 1; i--) {
-            tempPlayers[i] = tempPlayers[i - 1];
+            // Rotate players (except index 0)
+            PlayerProfile last = tempPlayers[n - 1];
+            for (int i = n - 1; i > 1; i--) {
+                tempPlayers[i] = tempPlayers[i - 1];
+            }
+            tempPlayers[1] = last;
         }
-        tempPlayers[1] = last;
     }
-}
-
 
     private void enqueue(Match match) {
         if (size == matches.length) {
@@ -88,7 +88,6 @@ public class TournamentQueue {
         }
         return matches[head];
     }
-
 
     public void clear() {
         size = 0;
