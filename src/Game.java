@@ -1,58 +1,75 @@
 import java.util.Scanner;
 
 /**
- * The Game class orchestrates the console loop: reading commands,
- * dropping pieces, checking for wins, and handling undo/restart.
+ * Game.java
+ * ----------
+ * This class is the "main controller" of the program.
+ * It runs the console loop, reads commands, updates the board,
+ * checks win/draw, handles undo/restart, supports AI mode,
+ * supports player accounts, and supports tournament mode.
  */
 public class Game {
 
+    // Default Connect-Four settings (6 rows, 7 columns, connect 4 to win)
     private static int ROWS = 6;
     private static int COLS = 7;
     private static int CONNECT = 4;
 
-    private Board board;
-    private MoveStack undoStack;
-    private TurnQueue turnQueue;
-    private Scanner scanner;
+    // Core game components
+    private Board board;            // The board grid + win/draw logic
+    private MoveStack undoStack;    // Stack to store moves for undo
+    private TurnQueue turnQueue;    // Queue to rotate turns between players
+    private Scanner scanner;        // Reads input from the terminal
 
-    private boolean gameOver; // set to true when win/draw/restart
+    // When true, no more moves are allowed until restart (except board/help/quit)
+    private boolean gameOver;
 
-    /**
-     * AI Fields
-     */
-    private AIPlayer aiPlayer = null; // AI player object
-    private boolean vsAI = false; // Are we playing vs AI?
-    private String aiLevel = ""; // random, med, or hard
-    private char humanToken = 'X'; // human is X, AI will be O
+    // AI mode fields
+    private AIPlayer aiPlayer = null; // AI player object (token will be 'O')
+    private boolean vsAI = false;     // True if Human vs AI mode is active
+    private String aiLevel = "";      // "random", "med", or "hard"
+    private char humanToken = 'X';    // Human plays X by default
 
+    // Player account storage (saved to a file)
     private PlayerStore playerStore = new PlayerStore("playerdata.txt");
 
+    // Tournament mode fields
+    private Tournament activeTournament = null; // The currently active tournament
+    private Match pendingMatch = null;          // Not used right now (kept for future use)
+    private boolean inTournamentMode = false;   // True when user is inside tournament mode
+
+    /**
+     * Constructor
+     * Initializes the board, undo stack, queue, and scanner.
+     * Also sets up default Human vs Human players.
+     */
     public Game() {
-        /**
-         * TODO: Initialize the board, undoStack, turnQueue with the correct
-         * parameters/values - COMPLETE
-         */
         this.board = new Board(ROWS, COLS, CONNECT);
         this.undoStack = new MoveStack(ROWS * COLS);
-        this.turnQueue = new TurnQueue(4); // capacity for up to 4 players
+        this.turnQueue = new TurnQueue(4);
         this.scanner = new Scanner(System.in);
 
-        // Two players by default
+        // Default players for normal (Human vs Human) mode
         turnQueue.enqueue(new Player("Player 1", 'X'));
         turnQueue.enqueue(new Player("Player 2", 'O'));
     }
 
+    /**
+     * Prints a clean command menu for the user.
+     * W controls spacing so the menu lines up nicely.
+     */
     private void printHelp() {
-        final int W = 32;
+        final int W = 36;
 
         System.out.println("Commands:\n");
 
-        // helper printer (keeps "->" aligned)
+        // Helper lambda to print command + description in aligned format
         java.util.function.BiConsumer<String, String> line =
                 (cmd, desc) -> System.out.printf("  %-" + W + "s -> %s%n", cmd, desc);
 
-        // Core gameplay
+        // Core gameplay commands
         line.accept("[0-6]", "drop a piece in that column");
+        line.accept("move [0-6]", "drop a piece in that column");
         line.accept("undo", "undo the last move (disabled after game ends)");
         line.accept("board", "reprint the current board");
         line.accept("restart", "clear the board and start over");
@@ -60,16 +77,25 @@ public class Game {
         line.accept("hint", "show safe/unsafe columns + a recommendation");
         System.out.println();
 
-        // AI gameplay
+        // AI gameplay commands
         line.accept("game ai random", "start Human vs AI (Easy)");
         line.accept("game ai med", "start Human vs AI (Medium)");
         line.accept("game ai hard", "start Human vs AI (Hard)");
         System.out.println();
 
-        // Profiles + tournaments
+        // Player profile/account commands
         line.accept("register <name>", "register a new player profile");
-        line.accept("create tournament <id> <p1> <p2> ...", "create a tournament with the given players");
-        line.accept("start tournament <id>", "start playing the tournament with the given id");
+        line.accept("login <name>", "login as an existing player");
+        line.accept("logout", "logout current user");
+        line.accept("whoami", "show current logged-in user");
+        line.accept("profile <name>", "show a player profile");
+        line.accept("leaderboard top <n>", "show top-n leaderboard (overall wins)");
+        System.out.println();
+
+        // Tournament commands
+        line.accept("create tournament <id> <p1> <p2> <p3> ...", "create a tournament with the given players");
+        line.accept("start tournament <id>", "enter tournament mode (use 'next' to play each match)");
+        line.accept("next", "in tournament mode: play the next scheduled match");
         line.accept("tournament standings <id>", "show standings for the given tournament");
         System.out.println();
 
@@ -78,7 +104,10 @@ public class Game {
         System.out.println();
     }
 
-
+    /**
+     * Main game loop.
+     * Keeps reading commands until user types 'quit' or input ends.
+     */
     public void run() {
         System.out.println("=== Connect-Four Mini (Terminal) ===");
         System.out.println("Goal: connect " + board.getConnect() + " in a row.");
@@ -88,247 +117,448 @@ public class Game {
 
         boolean keepPlaying = true;
         while (keepPlaying) {
+
+            // ----------------------------
+            // 1) TOURNAMENT MODE PROMPT
+            // ----------------------------
+            if (inTournamentMode) {
+                // Safety check: if tournament is missing, exit tournament mode
+                if (activeTournament == null) {
+                    inTournamentMode = false;
+                } else {
+                    // If no matches remain, show final standings and exit tournament mode
+                    if (!activeTournament.hasMoreMatches()) {
+                        System.out.println("Tournament concluded. Final Standings:");
+                        activeTournament.printStandings();
+                        activeTournament = null;
+                        inTournamentMode = false;
+                    } else {
+                        // Tournament prompt
+                        System.out.print("[TOURNAMENT] Type 'next' to play next match, 'tournament standings <id>', or 'quit': ");
+                    }
+                }
+            }
+
+            // ----------------------------
+            // 2) NORMAL GAME PROMPT
+            // ----------------------------
+            if (!inTournamentMode) {
+                if (gameOver) {
+                    // After game ends, allow only restart/help/board/quit
+                    System.out.print("Game over. Type 'restart' to play again, 'quit' to exit, or 'help' for options: ");
+                } else {
+                    // If playing human vs human, show current player's name/token
+                    if (!vsAI) {
+                        Player current = turnQueue.peek();
+                        System.out.print(current.name() + " (" + current.token() + "), enter command: ");
+                    } else {
+                        // If playing vs AI, always prompt human (X)
+                        System.out.print("Human (X), enter command: ");
+                    }
+                }
+            }
+
+            // If input stream ends (rare), stop safely
+            if (!scanner.hasNextLine()) {
+                keepPlaying = false;
+                System.out.println("Goodbye!");
+                break;
+            }
+
+            // Read and normalize user input
+            String line = scanner.nextLine().trim();
+            String lower = line.toLowerCase();
+
+            // ----------------------------
+            // 3) GLOBAL COMMANDS (ALWAYS WORK)
+            // ----------------------------
+            if (lower.equals("quit")) {
+                keepPlaying = false;
+                System.out.println("Goodbye!");
+                continue;
+            }
+
+            if (lower.equals("help")) {
+                printHelp();
+                continue;
+            }
+
+            if (lower.equals("board")) {
+                board.print();
+                continue;
+            }
+
+            if (lower.equals("restart")) {
+                restart();
+                continue;
+            }
+
+            // ----------------------------
+            // 4) TOURNAMENT MODE COMMANDS
+            // ----------------------------
+            if (inTournamentMode) {
+                if (lower.startsWith("tournament standings")) {
+                    handleTournamentStandings(lower);
+                    continue;
+                }
+                if (lower.equals("next")) {
+                    playNextTournamentMatch();
+                    continue;
+                }
+
+                // If user types something invalid in tournament mode
+                System.out.println("Tournament mode: valid commands are 'next', 'tournament standings <id>', 'quit'.");
+                continue;
+            }
+
+            // ----------------------------
+            // 5) IF GAME IS OVER, BLOCK MOST COMMANDS
+            // ----------------------------
             if (gameOver) {
-                System.out.print("Game over. Type 'restart' to play again, 'quit' to exit, or 'help' for options: ");
+                if (lower.equals("undo")) {
+                    System.out.println("Undo is not allowed after the game ends. Type 'restart' to play again.");
+                } else if (!lower.equals("restart") && !lower.equals("help") && !lower.equals("board")) {
+                    System.out.println("After the game ends, only 'restart', 'board', 'help', or 'quit' are allowed.");
+                }
+                continue;
+            }
 
-                // Post-game: accept ONLY restart/quit/help/board. Undo is disallowed.
-                if (!scanner.hasNextLine()) {
-                    keepPlaying = false;
-                    System.out.println("Goodbye!");
+            // ----------------------------
+            // 6) IN-GAME COMMANDS
+            // ----------------------------
+            if (lower.equals("undo")) {
+                handleUndo();
+                continue;
+            }
+
+            if (lower.equals("hint")) {
+                handleHint();
+                continue;
+            }
+
+            // ----------------------------
+            // 7) ACCOUNT COMMANDS
+            // ----------------------------
+            if (lower.startsWith("register")) {
+                String[] parts = line.split("\\s+");
+                if (parts.length != 2) {
+                    System.out.println("Usage: register <player_name>");
                 } else {
-                    String line = scanner.nextLine().trim();
-
-                    if (line.equalsIgnoreCase("restart")) {
-                        restart(); // sets gameOver=false
-                    } else if (line.equalsIgnoreCase("quit")) {
-                        keepPlaying = false;
-                        System.out.println("Goodbye!");
-                    } else if (line.equalsIgnoreCase("help")) {
-                        printHelp();
-                    } else if (line.equalsIgnoreCase("board")) {
-                        board.print();
-                    } else if (line.equalsIgnoreCase("undo")) {
-                        System.out.println("Undo is not allowed after the game ends. Type 'restart' to play again.");
-                    } else {
-                        System.out.println(
-                                "After the game ends, only 'restart', 'board', 'help', or 'quit' are allowed.");
-                    }
+                    System.out.println(playerStore.register(parts[1]));
                 }
+                continue;
+            }
 
-            } else {
-                /**
-                 * TODO:
-                 * Uncomment these lines when the functions have been implemented - COMPLETE
-                 */
-
-                // If we are NOT in AI mode, use the traditional TurnQueue
-                if (!vsAI) {
-                    Player current = turnQueue.peek();
-                    System.out.print(current.name() + " (" + current.token() + "), enter command: ");
-                }
-                // If we ARE in AI mode, only ask the HUMAN for input
-                else {
-                    System.out.print("Human (X), enter command: ");
-                }
-
-                // // Ask the TurnQueue who is going to play next (front of the queue)
-                // Player current = turnQueue.peek();
-                //
-                // // Prompt the current player for a command (column number or a keyword)
-                // System.out.print(current.name() + " (" + current.token() + "), enter command:
-                // ");
-
-                // If the input stream is closed, exit the loop
-                if (!scanner.hasNextLine())
-                    break;
-
-                String line = scanner.nextLine().trim();
-
-                // If the player typed "quit", stop the loop and exit
-                if (line.equalsIgnoreCase("quit")) {
-                    keepPlaying = false;
-                    System.out.println("Goodbye!");
-                    // If the player typed "help, print the help menu
-                } else if (line.equalsIgnoreCase("help")) {
-                    printHelp();
-                    // If the player typed "board", print the current board state
-                } else if (line.equalsIgnoreCase("board")) {
-                    board.print();
-                    // If the player typed "restart", reset the game state
-                } else if (line.equalsIgnoreCase("restart")) {
-                    restart();
-                    // If the player typed "undo", attempt to undo the last move (allowed only
-                    // mid-game)
-                } else if (line.equalsIgnoreCase("undo")) {
-                    handleUndo();
-                } else if (line.equalsIgnoreCase("hint")) {
-                    handleHint();
-                    /**
-                     * Start a gamme vs AI
-                     */
-                } else if (line.toLowerCase().startsWith("game ai")) {
-                    String[] parts = line.split("\\s+");
-
-                    if (parts.length < 3) {
-                        System.out.println("Usage: game ai < random | med | hard >");
-                    } else {
-                        String level = parts[2].toLowerCase();
-
-                        if (level.equals("random") || level.equals("med") || level.equals("hard")) {
-
-                            // Enable AI mode
-                            vsAI = true;
-                            aiLevel = level;
-                            humanToken = 'X';
-                            aiPlayer = new AIPlayer('O');
-                            gameOver = false;
-
-                            // Reset the game state
-                            board.clear();
-                            undoStack.clear();
-                            turnQueue.clear(); // this is not used in AI mode
-
-                            System.out.println("Starting Human vs AI game");
-                            System.out.println("AI difficulty:" + aiLevel);
-                            System.out.println("You are X and AI is O");
-                            board.print();
-
-                        } else {
-                            System.out.println("Unknown difficulty. Use: random, med, or hard");
-                        }
-                    }
-
-                } else if (line.toLowerCase().startsWith("register")) {
-                    String[] parts = line.split("\\s+");
-                    if (parts.length != 2) {
-                        System.out.println("Usage: register <player_name>");
-                    } else {
-                        String playerName = parts[1];
-                        String mess = playerStore.register(playerName);
-                        System.out.println(mess);
-                    }
-                } else if (line.toLowerCase().startsWith("create tournament")) {
-                    String[] parts = line.split("\\s+");
-                    if (parts.length < 6) {
-                        System.out.println("Tournament needs at least 3 players to start.");
-                    } else {
-                        try {
-                            handleTournamentCreation(parts);
-                        } catch (IllegalArgumentException iae) {
-                            System.out.println(iae.getMessage());
-                        }
-                    }
-                }
-
-                else if (line.toLowerCase().startsWith("start tournament")) {
-                    String[] parts = line.split("\\s+");
-                    if (parts.length != 3) {
-                        System.out.println("Usage: start tournament <tournament_id>");
-                    } else {
-                        int tournamentId;
-                        try {
-                            tournamentId = Integer.parseInt(parts[2]);
-                            Tournament tournament = TournamentManager.getTournament(tournamentId);
-                            if (tournament == null) {
-                                System.out.println("Tournament with ID " + tournamentId + " does not exist.");
-                            } else {
-                                System.out.println("Starting Tournament ID: " + tournamentId);
-                                while (tournament.hasMoreMatches()) {
-                                    Match match = tournament.playNextMatch();
-                                    System.out.println("Match: " + match.getPlayer1().getName() + " vs "
-                                            + match.getPlayer2().getName());
-                                    playMatchWithAI(match, tournament);
-                                }
-                                System.out
-                                        .println("Tournament ID: " + tournamentId + " has concluded. Final Standings:");
-                                tournament.printStandings();
-                            }
-                        } catch (NumberFormatException nfe) {
-                            System.out.println("Invalid tournament ID. It must be an integer.");
-                        }
-                    }
-                }
-
-                else if (line.toLowerCase().startsWith("tournament standings")) {
-                    String[] parts = line.split("\\s+");
-                    if (parts.length != 3) {
-                        System.out.println("Usage: tournament standings <tournament_id>");
-                    } else {
-                        int tournamentId;
-                        try {
-                            tournamentId = Integer.parseInt(parts[2]);
-                            Tournament tournament = TournamentManager.getTournament(tournamentId);
-                            if (tournament == null) {
-                                System.out.println("Tournament with ID " + tournamentId + " does not exist.");
-                            } else {
-                                System.out.println("Current Standings for Tournament ID: " + tournamentId);
-                                tournament.printStandings();
-                            }
-                        } catch (NumberFormatException nfe) {
-                            System.out.println("Invalid tournament ID. It must be an integer.");
-                        }
-                    }
+            if (lower.startsWith("login")) {
+                String[] parts = line.split("\\s+");
+                if (parts.length != 2) {
+                    System.out.println("Usage: login <player_name>");
                 } else {
+                    System.out.println(playerStore.login(parts[1]));
+                }
+                continue;
+            }
 
-                    /**
-                     * TODO: Try to parse the input as a column number and drop a piece there. -
-                     * COMPLETE
-                     * Also handle implement error handling
-                     */
+            if (lower.equals("logout")) {
+                System.out.println(playerStore.logout());
+                continue;
+            }
+
+            if (lower.equals("whoami")) {
+                System.out.println(playerStore.whoami());
+                continue;
+            }
+
+            if (lower.startsWith("profile")) {
+                String[] parts = line.split("\\s+");
+                if (parts.length != 2) {
+                    System.out.println("Usage: profile <player_name>");
+                } else {
+                    System.out.println(playerStore.profile(parts[1]));
+                }
+                continue;
+            }
+
+            if (lower.startsWith("leaderboard top")) {
+                String[] parts = lower.split("\\s+");
+                if (parts.length != 3) {
+                    System.out.println("Usage: leaderboard top <n>");
+                } else {
                     try {
-                        // store the number in col variable
-                        int col = Integer.parseInt(line);
-                        // attempt to apply the command and show the updated board
-                        handleDrop(col);
-                        board.print();
-
-                        // AI MOVE (only if in AI mode, and game is NOT over)
-                        if (vsAI && !gameOver) {
-
-                            // AI decides a column
-                            int aiColumn;
-
-                            if (aiLevel.equals("random")) {
-                                aiColumn = aiPlayer.randomMove(board);
-                            } else if (aiLevel.equals("med")) {
-                                aiColumn = aiPlayer.mediumMove(board);
-                            } else {
-                                aiColumn = aiPlayer.hardMove(board);
-                            }
-
-                            // Place AI’s move on the board
-                            int aiRow = board.drop(aiColumn, aiPlayer.getToken());
-                            undoStack.push(new Move(aiRow, aiColumn, aiPlayer.getToken()));
-
-                            System.out.println("AI moves at column " + aiColumn);
-                            board.print();
-
-                            // Check win or draw for AI
-                            if (board.isWinningMove(aiRow, aiColumn)) {
-                                System.out.println("AI wins!");
-                                gameOver = true;
-                            } else if (board.isFull()) {
-                                System.out.println("Game is a draw!");
-                                gameOver = true;
-                            }
-                        }
-
+                        int n = Integer.parseInt(parts[2]);
+                        System.out.println(playerStore.leaderboardTop(n));
                     } catch (NumberFormatException nfe) {
-                        System.out.println("Invalid command. Type a column number, or try 'help'.");
+                        System.out.println("N must be an integer.");
+                    }
+                }
+                continue;
+            }
+
+            // ----------------------------
+            // 8) START AI GAME COMMAND
+            // ----------------------------
+            if (lower.startsWith("game ai")) {
+                String[] parts = lower.split("\\s+");
+                if (parts.length != 3) {
+                    System.out.println("Usage: game ai <random|med|hard>");
+                    continue;
+                }
+
+                String level = parts[2];
+                if (!level.equals("random") && !level.equals("med") && !level.equals("hard")) {
+                    System.out.println("Unknown difficulty. Use: random, med, or hard");
+                    continue;
+                }
+
+                // Turn on AI mode and reset board/moves
+                vsAI = true;
+                aiLevel = level;
+                humanToken = 'X';
+                aiPlayer = new AIPlayer('O');
+                gameOver = false;
+
+                board.clear();
+                undoStack.clear();
+                turnQueue.clear();
+
+                System.out.println("Starting Human vs AI game");
+                System.out.println("AI difficulty: " + aiLevel);
+                System.out.println("You are X and AI is O");
+                board.print();
+                continue;
+            }
+
+            // ----------------------------
+            // 9) TOURNAMENT CREATE COMMAND
+            // ----------------------------
+            if (lower.startsWith("create tournament")) {
+                String[] parts = line.split("\\s+");
+                if (parts.length < 6) {
+                    // create tournament <id> <p1> <p2> <p3> --> minimum 6 tokens
+                    System.out.println("Tournament needs at least 3 players to start.");
+                } else {
+                    try {
+                        handleTournamentCreation(parts);
+                        System.out.println("Tournament created successfully.");
                     } catch (IllegalArgumentException iae) {
                         System.out.println(iae.getMessage());
                     }
                 }
+                continue;
+            }
+
+            // ----------------------------
+            // 10) TOURNAMENT START COMMAND
+            // ----------------------------
+            if (lower.startsWith("start tournament")) {
+                String[] parts = lower.split("\\s+");
+                if (parts.length != 3) {
+                    System.out.println("Usage: start tournament <tournament_id>");
+                    continue;
+                }
+                try {
+                    int tournamentId = Integer.parseInt(parts[2]);
+                    Tournament tournament = TournamentManager.getTournament(tournamentId);
+                    if (tournament == null) {
+                        System.out.println("Tournament with ID " + tournamentId + " does not exist.");
+                    } else {
+                        activeTournament = tournament;
+                        inTournamentMode = true;
+                        System.out.println("Entered tournament mode for Tournament ID: " + tournamentId);
+                        System.out.println("Type 'next' to play the first match.");
+                    }
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Invalid tournament ID. It must be an integer.");
+                }
+                continue;
+            }
+
+            // Tournament standings command outside tournament mode
+            if (lower.startsWith("tournament standings")) {
+                handleTournamentStandings(lower);
+                continue;
+            }
+
+            // ----------------------------
+            // 11) MOVE INPUT (COLUMN OR "move N")
+            // ----------------------------
+            Integer maybeCol = parseMoveColumn(lower);
+            if (maybeCol == null) {
+                System.out.println("Invalid command. Type a column number, 'move N', or try 'help'.");
+                continue;
+            }
+
+            // Try dropping a piece; catch errors like invalid column
+            try {
+                handleDrop(maybeCol);
+                board.print();
+
+                // If playing vs AI and game not ended, let AI take its move now
+                if (vsAI && !gameOver) {
+                    aiTakeTurn();
+                }
+
+            } catch (IllegalArgumentException iae) {
+                System.out.println(iae.getMessage());
             }
         }
     }
 
-    private void handleTournamentCreation(String[] parts) {
-        // parts[0] = create
-        // parts[1] = tournament
-        // parts[2] = <tournament_id>
-        // parts[3...] = player names
+    /**
+     * Converts user input into a column number.
+     * Accepts:
+     *   - "move N"
+     *   - "N"
+     * Returns null if it is not a valid integer format.
+     */
+    private Integer parseMoveColumn(String lower) {
+        // Format: move N
+        if (lower.startsWith("move ")) {
+            String[] parts = lower.split("\\s+");
+            if (parts.length != 2) return null;
+            try {
+                return Integer.parseInt(parts[1]);
+            } catch (NumberFormatException nfe) {
+                return null;
+            }
+        }
 
+        // Format: N
+        try {
+            return Integer.parseInt(lower);
+        } catch (NumberFormatException nfe) {
+            return null;
+        }
+    }
+
+    /**
+     * Makes the AI choose a column and drop its piece.
+     * Also checks for AI win/draw and records result for logged-in user.
+     */
+    private void aiTakeTurn() {
+        int aiColumn;
+
+        // Choose AI move based on difficulty
+        if (aiLevel.equals("random")) {
+            aiColumn = aiPlayer.randomMove(board);
+        } else if (aiLevel.equals("med")) {
+            aiColumn = aiPlayer.mediumMove(board);
+        } else {
+            aiColumn = aiPlayer.hardMove(board);
+        }
+
+        // Drop AI token on the board and record move in undo stack
+        int aiRow = board.drop(aiColumn, aiPlayer.getToken());
+        undoStack.push(new Move(aiRow, aiColumn, aiPlayer.getToken()));
+
+        System.out.println("AI moves at column " + aiColumn);
+        board.print();
+
+        // Check if AI won
+        if (board.isWinningMove(aiRow, aiColumn)) {
+            System.out.println("AI wins!");
+            gameOver = true;
+            recordVsAIResultForLoggedInUser(-1); // human loses
+        }
+        // Check if draw
+        else if (board.isFull()) {
+            System.out.println("Game is a draw!");
+            gameOver = true;
+            recordVsAIResultForLoggedInUser(0); // draw
+        }
+    }
+
+    /**
+     * Saves the result of Human vs AI ONLY if a user is logged in.
+     * resultForHuman meanings:
+     *   1  = human win
+     *   0  = draw
+     *  -1  = human loss
+     */
+    private void recordVsAIResultForLoggedInUser(int resultForHuman) {
+        String who = playerStore.whoami();
+        // If no user is logged in, do nothing
+        if (who == null || who.equals("(none)")) {
+            return;
+        }
+        playerStore.recordHumanVsAI(who, resultForHuman);
+    }
+
+    /**
+     * Prints tournament standings for a given tournament ID.
+     * Usage: tournament standings <id>
+     */
+    private void handleTournamentStandings(String lower) {
+        String[] parts = lower.split("\\s+");
+        if (parts.length != 3) {
+            System.out.println("Usage: tournament standings <tournament_id>");
+            return;
+        }
+
+        try {
+            int tournamentId = Integer.parseInt(parts[2]);
+            Tournament t = TournamentManager.getTournament(tournamentId);
+            if (t == null) {
+                System.out.println("Tournament with ID " + tournamentId + " does not exist.");
+            } else {
+                System.out.println("Current Standings for Tournament ID: " + tournamentId);
+                t.printStandings();
+            }
+        } catch (NumberFormatException nfe) {
+            System.out.println("Invalid tournament ID. It must be an integer.");
+        }
+    }
+
+    /**
+     * Plays the next match in the active tournament.
+     * If no matches remain, it prints final standings and exits tournament mode.
+     */
+    private void playNextTournamentMatch() {
+        // If tournament disappeared, exit tournament mode safely
+        if (activeTournament == null) {
+            System.out.println("No active tournament.");
+            inTournamentMode = false;
+            return;
+        }
+
+        // If tournament is already finished, show final standings and exit
+        if (!activeTournament.hasMoreMatches()) {
+            System.out.println("Tournament concluded. Final Standings:");
+            activeTournament.printStandings();
+            activeTournament = null;
+            inTournamentMode = false;
+            return;
+        }
+
+        // Get the next match from the tournament
+        Match match = activeTournament.playNextMatch();
+        System.out.println("Match: " + match.getPlayer1().getName() + " vs " + match.getPlayer2().getName());
+
+        // Play this match using AI vs AI (hard mode for both)
+        playMatchWithAI(match, activeTournament);
+
+        // If finished after this match, end tournament mode
+        if (!activeTournament.hasMoreMatches()) {
+            System.out.println("Tournament concluded. Final Standings:");
+            activeTournament.printStandings();
+            activeTournament = null;
+            inTournamentMode = false;
+        } else {
+            System.out.println("Type 'next' to continue to the next match.");
+        }
+    }
+
+    /**
+     * Creates a tournament from user command parts.
+     * Expected format:
+     *   create tournament <id> <p1> <p2> <p3> ...
+     *
+     * This method validates:
+     * - tournament id must be an integer
+     * - at least 3 players
+     * - all players must exist in player store
+     */
+    private void handleTournamentCreation(String[] parts) {
         int tournamentId;
         try {
             tournamentId = Integer.parseInt(parts[2]);
@@ -339,6 +569,8 @@ public class Game {
         if (parts.length < 6) {
             throw new IllegalArgumentException("Tournament needs at least 3 players to start.");
         }
+
+        // Convert names into PlayerProfile objects
         PlayerProfile[] tournamentPlayers = new PlayerProfile[parts.length - 3];
         for (int i = 3; i < parts.length; i++) {
             String playerName = parts[i];
@@ -346,192 +578,191 @@ public class Game {
             if (p == null) {
                 throw new IllegalArgumentException("Player '" + playerName + "' does not exist in the player store.");
             } else {
-                System.out.println("Added player '" + playerName + "' to tournament " + tournamentId);
                 tournamentPlayers[i - 3] = p;
             }
         }
+
+        // Create and store tournament
         Tournament tournament = new Tournament(tournamentId, tournamentPlayers);
         TournamentManager.addTournament(tournament);
-
     }
 
     /**
-     * TODO: Handle dropping a piece in the specified column. Completed
-     *
-     * @param col
+     * Drops a piece into the board for the current player.
+     * Handles:
+     * - invalid column numbers
+     * - full column
+     * - win/draw checks
+     * - turn rotation (human vs human)
+     * - AI result recording (human vs AI)
      */
     private void handleDrop(int col) {
-
-        // it will check if the picked column is valid
+        // Validate column range
         if (col < 0 || col >= board.getCols()) {
             throw new IllegalArgumentException("Unacceptable column number! Please try again.");
         }
 
+        // Decide whose token is being dropped
         char currentToken;
         String currentName;
 
         if (vsAI) {
-            currentToken = humanToken; // X
+            // Human's turn in vs-AI mode
+            currentToken = humanToken;
             currentName = "Human";
         } else {
+            // Human vs Human: get current player from the queue
             Player current = turnQueue.peek();
             currentToken = current.token();
             currentName = current.name();
         }
 
-        int row = board.drop(col, currentToken); // it tells us the token that is passed is on which row
+        // Drop the token; board.drop returns the row where it landed
+        int row = board.drop(col, currentToken);
 
-        // if the column is full gives us message to change it to another column
+        // If board.drop uses -1 to indicate "column full"
         if (row == -1) {
             System.out.println("That column is full. Try another one.");
             return;
         }
 
-        // it will save the current move so it can be undone later
-        Move move = new Move(row, col, currentToken);
-        undoStack.push(move);
+        // Push this move for undo support
+        undoStack.push(new Move(row, col, currentToken));
 
-        // in this step we will check if the current player won
+        // If this move makes a 4-in-a-row, game ends
         if (board.isWinningMove(row, col)) {
-            System.out.println("Congratulations!" + currentName + "(" + currentToken + ") wins!");
-            System.out.println("Type 'restart' to play again or 'quit' to exit.");
-            gameOver = true; // lock further numeric input
-            return; // do not rotate after win
-        }
+            System.out.println("Congratulations! " + currentName + " (" + currentToken + ") wins!");
+            gameOver = true;
 
-        // it will check for a draw
-        if (board.isFull()) {
-            System.out.println("It is a draw! Type 'restart' to play again or 'quit' to exit.");
-            gameOver = true; // lock further numeric input
+            // If vs AI, record win for logged-in user
+            if (vsAI) {
+                recordVsAIResultForLoggedInUser(1);
+            }
             return;
         }
-        if (!vsAI) {
-            turnQueue.rotate(); // only rotate players in human vs human mode
 
-            if (vsAI && !gameOver) {
-                int aiCol;
+        // If board is full, it is a draw
+        if (board.isFull()) {
+            System.out.println("It is a draw!");
+            gameOver = true;
 
-                if (aiLevel.equals("random")) {
-                    aiCol = aiPlayer.randomMove(board);
-                } else if (aiLevel.equals("med")) {
-                    aiCol = aiPlayer.mediumMove(board);
-                } else {
-                    aiCol = aiPlayer.hardMove(board);
-                }
-
-                int aiRow = board.drop(aiCol, aiPlayer.getToken());
-
-                Move aiMove = new Move(aiRow, aiCol, aiPlayer.getToken());
-                undoStack.push(aiMove);
-
-                System.out.println("AI played column " + aiCol);
-                board.print();
-
-                if (board.isWinningMove(aiRow, aiCol)) {
-                    System.out.println("AI wins! Type 'restart' or 'quit'.");
-                    gameOver = true;
-                } else if (board.isFull()) {
-                    System.out.println("It is a draw! Type 'restart' or 'quit'.");
-                    gameOver = true;
-                }
+            // If vs AI, record draw for logged-in user
+            if (vsAI) {
+                recordVsAIResultForLoggedInUser(0);
             }
-
+            return;
         }
 
-        // handleHint(); // show hint for the next player automatically
-
+        // Rotate turns only for Human vs Human
+        if (!vsAI) {
+            turnQueue.rotate();
+        }
     }
 
     /**
-     * TODO: Handle undoing the last move - Completed
+     * Undo logic:
+     * - In normal mode: undo one move and rotate back the turn
+     * - In vs-AI mode: undo two moves (AI move + human move)
      */
     private void handleUndo() {
-        // Disallow undo after game end
+        // Undo is not allowed after game ends
         if (gameOver) {
             System.out.println("Undo is not allowed after the game ends. Type 'restart' to play again.");
             return;
         }
 
+        // If stack is empty, nothing to undo
         if (undoStack.isEmpty()) {
             System.out.println("There is no move to undo.");
             return;
         }
 
-        // will get the last move from the stack
-        Move lastMove = undoStack.pop();
+        // Special rule: vs-AI mode undoes BOTH the AI move and the human move
+        if (vsAI) {
+            if (undoStack.size() < 2) {
+                System.out.println("Not enough moves to undo in vs-AI mode.");
+                return;
+            }
 
-        // will undo that move on the board
-        board.undo(lastMove.row(), lastMove.col());
+            // Undo AI move first
+            Move aiMove = undoStack.pop();
+            board.undo(aiMove.row(), aiMove.col());
 
-        // now it will rotate turn back to previous player (If it is vs human)
-        if (!vsAI) {
-            turnQueue.rotate();
+            // Undo human move
+            Move humanMove = undoStack.pop();
+            board.undo(humanMove.row(), humanMove.col());
+
+            System.out.println("Undid your last move and the AI's last move.");
+            board.print();
+            return;
         }
-        // will print a confirmation message
+
+        // Human vs Human: undo only last move and rotate back
+        Move lastMove = undoStack.pop();
+        board.undo(lastMove.row(), lastMove.col());
+        turnQueue.rotate(); // rotate back so the same player can play again
+
         System.out.println("Last move undone. Back to " + turnQueue.peek().name() + ".");
         board.print();
     }
 
     /**
-     * TODO: Restart the game - Completed
+     * Reset everything back to a fresh new game.
+     * Clears board, undo stack, turn queue, AI mode flags, tournament flags.
      */
     private void restart() {
-        board.clear(); // this will clear the board
-        undoStack.clear(); // This will clear the undo stack
-        turnQueue.clear(); // this will reset the turn queue
+        board.clear();
+        undoStack.clear();
+        turnQueue.clear();
 
-        // now we should add the two players in order again
+        // Re-add default players
         turnQueue.enqueue(new Player("Player 1", 'X'));
         turnQueue.enqueue(new Player("Player 2", 'O'));
 
-        System.out.println("Game restarted!"); // we print a confirmation message
-        board.print(); // print the empty board again
+        // Reset AI mode
+        vsAI = false;
+        aiLevel = "";
+        aiPlayer = null;
+        humanToken = 'X';
+
+        // Reset tournament mode
+        inTournamentMode = false;
+        activeTournament = null;
+        pendingMatch = null;
+
+        System.out.println("Game restarted!");
+        board.print();
         gameOver = false;
     }
 
     /**
-     * Here we define a method to handle the hints
-     * TODO: Handle showing a hint for the current player - Completed
-     **/
-
-    /**
-     * Handle showing a hint for the current player
+     * Shows hint information for the current player.
+     * Uses the Hints class to compute safe/unsafe moves and a recommendation.
      */
     private void handleHint() {
-
         char currentToken;
         char opponentToken;
         String playerLabel;
 
-        // HUMAN vs AI MODE
         if (vsAI) {
-
-            currentToken = humanToken; // Human is X
-            opponentToken = aiPlayer.getToken(); // AI is O
+            // Human vs AI: current is human, opponent is AI
+            currentToken = humanToken;
+            opponentToken = aiPlayer.getToken();
             playerLabel = "Human";
-
-        }
-        // HUMAN vs HUMAN MODE
-        else {
-
+        } else {
+            // Human vs Human: current from queue, opponent is next in queue
             Player current = turnQueue.peek();
             Player opponent = turnQueue.peekNext();
 
             currentToken = current.token();
             playerLabel = current.name();
 
-            if (opponent != null) {
-                opponentToken = opponent.token();
-            } else {
-                if (currentToken == 'X') {
-                    opponentToken = 'O';
-                } else {
-                    opponentToken = 'X';
-                }
-            }
+            // If opponent is null (edge case), pick the opposite token manually
+            if (opponent != null) opponentToken = opponent.token();
+            else opponentToken = (currentToken == 'X') ? 'O' : 'X';
         }
 
-        // Generate and print hints
+        // Get hints and print them
         Hints hints = Hints.getHints(currentToken, opponentToken, board);
 
         System.out.println();
@@ -540,19 +771,27 @@ public class Game {
         System.out.println();
     }
 
+    /**
+     * Plays one AI-vs-AI match completely (used for tournament).
+     * Uses HARD AI for both sides.
+     *
+     * This does NOT use the main game board.
+     * It creates a fresh matchBoard so tournament games do not affect your current game.
+     */
     private void playMatchWithAI(Match match, Tournament tournament) {
-
-        // Create a fresh board for the match
+        // New board for this match only
         Board matchBoard = new Board(ROWS, COLS, CONNECT);
         matchBoard.clear();
 
-        // Create two AI players
+        // Hard AI for both sides
         AIPlayer aiPlayer1 = new AIPlayer('X');
         AIPlayer aiPlayer2 = new AIPlayer('O');
 
+        // Player profiles from the match
         PlayerProfile player1 = match.getPlayer1();
         PlayerProfile player2 = match.getPlayer2();
 
+        // True = player1's turn, false = player2's turn
         boolean player1Turn = true;
 
         System.out.println("----------------------------------");
@@ -561,134 +800,42 @@ public class Game {
                 + player2.getName() + " (O)");
         matchBoard.print();
 
+        // Run until win or draw
         while (true) {
+            // Decide which AI and which player is moving right now
+            AIPlayer currentAI = player1Turn ? aiPlayer1 : aiPlayer2;
+            PlayerProfile currentPlayer = player1Turn ? player1 : player2;
 
-            AIPlayer currentAI;
-            PlayerProfile currentPlayer;
-
-            if (player1Turn) {
-                currentAI = aiPlayer1;
-                currentPlayer = player1;
-            } else {
-                currentAI = aiPlayer2;
-                currentPlayer = player2;
-            }
-
-            // Choose move
+            // AI chooses a move and plays it
             int col = currentAI.hardMove(matchBoard);
-
             int row = matchBoard.drop(col, currentAI.getToken());
 
-            System.out.println(
-                    currentPlayer.getName()
-                            + " (" + currentAI.getToken() + ") plays column " + col);
-
+            System.out.println(currentPlayer.getName() + " (" + currentAI.getToken() + ") plays column " + col);
             matchBoard.print();
 
-            // Check for win
+            // If this move wins the match
             if (matchBoard.isWinningMove(row, col)) {
                 System.out.println(currentPlayer.getName() + " wins the match!");
 
+                // Update tournament standings
                 PlayerProfile loser = player1Turn ? player2 : player1;
-
                 tournament.addWin(currentPlayer);
                 tournament.addLoss(loser);
-
-                waitForNextMatch();
                 return;
             }
 
-            // Check for draw
+            // If the board is full, it is a draw
             if (matchBoard.isFull()) {
                 System.out.println("Match ended in a draw.");
 
+                // Record draw for both players (overall stats)
                 player1.recordOverallResult(0);
                 player2.recordOverallResult(0);
-                waitForNextMatch();
                 return;
             }
 
             // Switch turns
             player1Turn = !player1Turn;
         }
-
     }
-
-    /**
-     * TODO: pause after a match until the user types "next" - COMPLETED
-     *
-     * This method is used between tournament matches.
-     * It stops the program and waits for the user to type "next"
-     * before continuing to the next match.
-     *
-     * While waiting, the user can also view tournament standings.
-     */
-    private void waitForNextMatch() {
-
-        // Prompt the user to continue
-        System.out.print("Type 'next' to continue to the next match: ");
-
-        // Keep looping until valid input is given
-        while (true) {
-
-            // If there is no more input, exit the method
-            if (!scanner.hasNextLine()) {
-                return;
-            }
-
-            // Read the user's input and remove extra spaces
-            String input = scanner.nextLine().trim();
-
-            // Convert input to lowercase so commands are case-insensitive
-            String lower = input.toLowerCase();
-
-            // If the user types "next", exit this method and continue tournament
-            if (lower.startsWith("next")) {
-                System.out.println(); // spacing for cleaner output
-                return;
-            }
-
-            // If the user wants to see tournament standings
-            if (lower.startsWith("tournament standings")) {
-
-                // Split the command into parts
-                String[] parts = lower.split("\\s+");
-
-                // Check if the command format is correct
-                if (parts.length != 3) {
-                    System.out.println("Usage: tournament standings <tournament_id>");
-                } else {
-                    try {
-                        // Convert tournament id from String to integer
-                        int tournamentId = Integer.parseInt(parts[2]);
-
-                        // Get the tournament from the TournamentManager
-                        Tournament tournament = TournamentManager.getTournament(tournamentId);
-
-                        // If the tournament does not exist, print an error
-                        if (tournament == null) {
-                            System.out.println("Tournament with ID " + tournamentId + " does not exist.");
-                        } else {
-                            // Print the current standings for the tournament
-                            System.out.println("Current Standings for Tournament ID: " + tournamentId);
-                            tournament.printStandings();
-                        }
-
-                    } catch (NumberFormatException nfe) {
-                        // If the tournament id is not a number
-                        System.out.println("Invalid tournament ID. It must be an integer.");
-                    }
-                }
-
-                // After showing standings, ask again for "next"
-                System.out.print("Type 'next' to continue to the next match: ");
-                continue;
-            }
-
-            // Any other input is invalid while waiting
-            System.out.print("Invalid input. Please type 'next': ");
-        }
-    }
-
-
 }

@@ -8,6 +8,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/playerdata.txt" beforeDir="false" afterPath="$PROJECT_DIR$/playerdata.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/PlayerProfile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/PlayerProfile.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/PlayerStore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/PlayerStore.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +100,7 @@
       <workItem from="1760661826226" duration="4432000" />
       <workItem from="1766101594371" duration="2733000" />
       <workItem from="1766115915634" duration="34000" />
-      <workItem from="1766118869755" duration="5196000" />
+      <workItem from="1766118869755" duration="10541000" />
     </task>
     <task id="LOCAL-00001" summary="Added handleHint() in Game class">
       <option name="closed" value="true" />

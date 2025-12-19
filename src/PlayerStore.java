@@ -113,7 +113,12 @@ public class PlayerStore {
         PlayerProfile h = getProfileObject(humanName);
         if (h == null) return;
 
+        // Update AI-specific stats
         h.recordAiResult(resultForHuman);
+
+        // Update overall stats + last-10 rolling results
+        h.recordOverallResult(resultForHuman);
+
         save();
     }
 

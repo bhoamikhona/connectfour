@@ -49,7 +49,6 @@ public class PlayerProfile implements Serializable {
         if (result == 1) aiWins++;
         else if (result == -1) aiLosses++;
         else aiDraws++;
-        addToLast10(result);
     }
 
     private void addToLast10(int result) {
